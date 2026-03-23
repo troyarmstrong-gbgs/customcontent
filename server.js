@@ -284,15 +284,16 @@ app.get('*', (req, res) => {
 
 // ── Start ───────────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`\n🎰 Great Big Game Show — Content Request Portal  [v2 — mkdirSync fix active]`);
+  console.log(`\n🎰 Great Big Game Show — Content Request Portal`);
   console.log(`   Running at http://localhost:${PORT}`);
-  console.log(`   Form:     http://localhost:${PORT}`);
-  console.log(`   Hub:      http://localhost:${PORT}/hub.html`);
-  console.log(`\n   Configure email by copying .env.example → .env\n`);
-  // Proactively verify the data directory is writable at startup
+  console.log(`\n── Environment Check ──────────────────────────`);
+  console.log(`   RESEND_API_KEY : ${process.env.RESEND_API_KEY ? '✅ SET (' + process.env.RESEND_API_KEY.slice(0,6) + '...)' : '❌ NOT SET'}`);
+  console.log(`   NOTIFY_EMAIL   : ${process.env.NOTIFY_EMAIL   || '(default) troy.armstrong@greatbiggameshow.com'}`);
+  console.log(`   PORT           : ${PORT}`);
+  console.log(`───────────────────────────────────────────────\n`);
   try {
     fs.mkdirSync(path.dirname(DATA), { recursive: true });
-    console.log(`   ✅ Data directory ready: ${path.dirname(DATA)}`);
+    console.log(`   ✅ Data directory ready`);
   } catch (e) {
     console.error(`   ❌ Data directory error: ${e.message}`);
   }
