@@ -265,9 +265,16 @@ app.get('*', (req, res) => {
 
 // ── Start ───────────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`\n🎰 Great Big Game Show — Content Request Portal`);
+  console.log(`\n🎰 Great Big Game Show — Content Request Portal  [v2 — mkdirSync fix active]`);
   console.log(`   Running at http://localhost:${PORT}`);
   console.log(`   Form:     http://localhost:${PORT}`);
   console.log(`   Hub:      http://localhost:${PORT}/hub.html`);
   console.log(`\n   Configure email by copying .env.example → .env\n`);
+  // Proactively verify the data directory is writable at startup
+  try {
+    fs.mkdirSync(path.dirname(DATA), { recursive: true });
+    console.log(`   ✅ Data directory ready: ${path.dirname(DATA)}`);
+  } catch (e) {
+    console.error(`   ❌ Data directory error: ${e.message}`);
+  }
 });
