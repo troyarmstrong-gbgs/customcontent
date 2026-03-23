@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express  = require('express');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 const fs       = require('fs');
 const path     = require('path');
 const cors     = require('cors');
@@ -24,17 +24,12 @@ function save(d) { fs.writeFileSync(DATA, JSON.stringify(d, null, 2)); }
 
 // ── Email ───────────────────────────────────────────────────
 async function sendEmail(sub) {
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    console.log('⚠️  Email not configured — skipping notification.');
+  if (!process.env.RESEND_API_KEY) {
+    console.log('⚠️  Email not configured — set RESEND_API_KEY to enable notifications.');
     return;
   }
 
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.SMTP_PORT) || 587,
-    secure: false,
-    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-  });
+  const resend = new Resend(process.env.RESEND_API_KEY);
 
   // Field labels for email display
   const FIELD_LABELS = {
@@ -151,15 +146,17 @@ async function sendEmail(sub) {
 </body></html>`;
 
   const gameAbbr = blocks.length === 1 ? (blocks[0].game || '') : `${blocks.length} games`;
+  const toEmail  = process.env.NOTIFY_EMAIL || 'troy.armstrong@greatbiggameshow.com';
 
-  await transporter.sendMail({
-    from: `"${process.env.SMTP_FROM_NAME || 'GBGS Content Portal'}" <${process.env.SMTP_USER}>`,
-    to:   process.env.NOTIFY_EMAIL || 'troy.armstrong@greatbiggameshow.com',
+  const { error } = await resend.emails.send({
+    from: 'GBGS Content Portal <onboarding@resend.dev>',
+    to:   toEmail,
     subject: `📋 Content Request — ${sub.requestor} | ${sub.storeName} | ${fmtDate(sub.eventDate)} | ${gameAbbr}`,
     html,
   });
 
-  console.log(`✅ Notification sent to ${process.env.NOTIFY_EMAIL}`);
+  if (error) throw new Error(error.message);
+  console.log(`✅ Notification sent to ${toEmail}`);
 }
 
 // ── Utils ───────────────────────────────────────────────────
@@ -245,25 +242,20 @@ app.patch('/api/submissions/:id/status', (req, res) => {
 
 // Test email endpoint — visit /api/test-email in browser to trigger a test
 app.get('/api/test-email', async (req, res) => {
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    return res.json({ ok: false, error: 'SMTP_USER or SMTP_PASS environment variables are not set.' });
+  if (!process.env.RESEND_API_KEY) {
+    return res.json({ ok: false, error: 'RESEND_API_KEY environment variable is not set.' });
   }
   try {
-    const nodemailer = require('nodemailer');
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT) || 587,
-      secure: false,
-      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-    });
-    await transporter.verify();
-    await transporter.sendMail({
-      from: `"GBGS Content Portal" <${process.env.SMTP_USER}>`,
-      to: process.env.NOTIFY_EMAIL || 'troy.armstrong@greatbiggameshow.com',
+    const resend  = new Resend(process.env.RESEND_API_KEY);
+    const toEmail = process.env.NOTIFY_EMAIL || 'troy.armstrong@greatbiggameshow.com';
+    const { error } = await resend.emails.send({
+      from: 'GBGS Content Portal <onboarding@resend.dev>',
+      to:   toEmail,
       subject: '✅ Test Email — GBGS Content Portal',
       html: '<p>This is a test email from the Great Big Game Show Content Request Portal. If you received this, email notifications are working correctly!</p>',
     });
-    res.json({ ok: true, message: `Test email sent to ${process.env.NOTIFY_EMAIL || 'troy.armstrong@greatbiggameshow.com'}` });
+    if (error) return res.json({ ok: false, error: error.message });
+    res.json({ ok: true, message: `Test email sent to ${toEmail}` });
   } catch (err) {
     res.json({ ok: false, error: err.message });
   }
