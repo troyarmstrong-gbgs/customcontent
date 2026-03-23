@@ -243,6 +243,32 @@ app.patch('/api/submissions/:id/status', (req, res) => {
   res.json({ success: true });
 });
 
+// Test email endpoint — visit /api/test-email in browser to trigger a test
+app.get('/api/test-email', async (req, res) => {
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    return res.json({ ok: false, error: 'SMTP_USER or SMTP_PASS environment variables are not set.' });
+  }
+  try {
+    const nodemailer = require('nodemailer');
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: parseInt(process.env.SMTP_PORT) || 587,
+      secure: false,
+      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    });
+    await transporter.verify();
+    await transporter.sendMail({
+      from: `"GBGS Content Portal" <${process.env.SMTP_USER}>`,
+      to: process.env.NOTIFY_EMAIL || 'troy.armstrong@greatbiggameshow.com',
+      subject: '✅ Test Email — GBGS Content Portal',
+      html: '<p>This is a test email from the Great Big Game Show Content Request Portal. If you received this, email notifications are working correctly!</p>',
+    });
+    res.json({ ok: true, message: `Test email sent to ${process.env.NOTIFY_EMAIL || 'troy.armstrong@greatbiggameshow.com'}` });
+  } catch (err) {
+    res.json({ ok: false, error: err.message });
+  }
+});
+
 // Hub config
 app.get('/api/config', (req, res) => {
   res.json({ hubPasswordRequired: true });
