@@ -154,7 +154,7 @@ async function sendEmail(sub) {
 
   await transporter.sendMail({
     from: `"${process.env.SMTP_FROM_NAME || 'GBGS Content Portal'}" <${process.env.SMTP_USER}>`,
-    to:   process.env.NOTIFY_EMAIL || 'troy.armstrong@theescapegame.com',
+    to:   process.env.NOTIFY_EMAIL || 'troy.armstrong@greatbiggameshow.com',
     subject: `📋 Content Request — ${sub.requestor} | ${sub.storeName} | ${fmtDate(sub.eventDate)} | ${gameAbbr}`,
     html,
   });
@@ -245,13 +245,14 @@ app.patch('/api/submissions/:id/status', (req, res) => {
 
 // Hub config
 app.get('/api/config', (req, res) => {
-  res.json({ hubPasswordRequired: !!process.env.HUB_PASSWORD });
+  res.json({ hubPasswordRequired: true });
 });
 
 // Hub auth
 app.post('/api/hub-auth', (req, res) => {
   const { password } = req.body;
-  if (!process.env.HUB_PASSWORD || password === process.env.HUB_PASSWORD) {
+  const required = process.env.HUB_PASSWORD || '4247';
+  if (password === required) {
     res.json({ success: true });
   } else {
     res.status(401).json({ error: 'Incorrect password' });
