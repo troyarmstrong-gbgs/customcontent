@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Content Request — Great Big Game Show</title>
+  <title>Custom Content Request Portal — Great Big Game Show</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
@@ -14,7 +14,7 @@
   <header class="site-header">
     <a href="/" class="logo">
       <span class="logo-wordmark">Great Big Game Show</span>
-      <span class="logo-sub-label">Content Request Portal</span>
+      <span class="logo-sub-label">Custom Content Request Portal</span>
     </a>
     <nav class="header-nav">
       <a href="/hub.html" class="nav-btn outline">🗂 Admin Hub</a>
@@ -28,9 +28,9 @@
 
     <div class="hero-section">
       <div class="hero-inner hero">
-        <div class="hero-eyebrow">✦ Store Content Request</div>
-        <h1>Submit <em>Custom Content</em></h1>
-        <p>Add one or more game content blocks below. Each block is tied to a specific game — mix and match as needed for your event.</p>
+        <div class="hero-eyebrow">✦ Custom Content Request</div>
+        <h1>Custom Content <em>Request Portal</em></h1>
+        <p>Add one or more games worth of content below - mix and match as needed for your event!</p>
       </div>
     </div>
 
@@ -49,7 +49,7 @@
           <div class="card-body">
             <div class="form-grid">
               <div class="form-group">
-                <label for="requestor">Requestor <span class="req">*</span></label>
+                <label for="requestor">Team Member <span class="req">*</span></label>
                 <input type="text" id="requestor" placeholder="Your name" required />
               </div>
               <div class="form-group">
@@ -57,7 +57,7 @@
                 <input type="text" id="occasion" placeholder="e.g. Birthday, Anniversary, Team Event…" />
               </div>
               <div class="form-group col-span-2">
-                <label for="guestName">Guest of Honor / Guest Name <span class="opt">(optional)</span></label>
+                <label for="guestName">Guest(s) of Honor <span class="opt">(optional)</span></label>
                 <input type="text" id="guestName" placeholder="Name of the person being celebrated or featured" />
               </div>
             </div>
@@ -76,8 +76,37 @@
           <div class="card-body">
             <div class="form-grid">
               <div class="form-group">
-                <label for="storeName">Store Name <span class="req">*</span></label>
-                <input type="text" id="storeName" placeholder="e.g. GBGS Nashville" required />
+                <label for="storeName">Location <span class="req">*</span></label>
+                <select id="storeName" required>
+                  <option value="" disabled selected>— Select your location —</option>
+                  <option>Opry Mills</option>
+                  <option>The Colony</option>
+                  <option>MOA</option>
+                  <option>SF Wharf</option>
+                  <option>Houston CC</option>
+                  <option>Oak Brook</option>
+                  <option>Pigeon Forge</option>
+                  <option>Georgetown</option>
+                  <option>Las Vegas, NV - Forum</option>
+                  <option>Honolulu</option>
+                  <option>American Dream</option>
+                  <option>STL</option>
+                  <option>San Jose</option>
+                  <option>Seattle South Center</option>
+                  <option>NYC</option>
+                  <option>Seattle Reinvent</option>
+                  <option>Area 15</option>
+                  <option>Murray</option>
+                  <option>Birmingham</option>
+                  <option>Orlando</option>
+                  <option>Schaumburg</option>
+                  <option>Atlanta</option>
+                  <option>Canoga Park</option>
+                  <option>Handover</option>
+                  <option>Rancho Cucamonga</option>
+                  <option>Richmond</option>
+                  <option>Panama City Beach</option>
+                </select>
               </div>
               <div class="form-group">
                 <label for="eventDate">Date of Event <span class="req">*</span></label>
@@ -150,7 +179,7 @@
   </div><!-- /successView -->
 
   <footer class="site-footer">
-    &copy; <span id="yr"></span> Great Big Game Show &nbsp;·&nbsp; Content Request Portal
+    &copy; <span id="yr"></span> Great Big Game Show &nbsp;·&nbsp; Custom Content Request Portal
   </footer>
 
 </div><!-- /page-wrapper -->
@@ -597,8 +626,8 @@ async function handleSubmit(e) {
   const eventDate = document.getElementById('eventDate').value;
   const notes     = document.getElementById('notes').value.trim();
 
-  if (!requestor) { toast('Please enter the requestor name.', 'error'); return; }
-  if (!storeName) { toast('Please enter your store name.', 'error'); return; }
+  if (!requestor) { toast('Please enter your name.', 'error'); return; }
+  if (!storeName) { toast('Please select your location.', 'error'); return; }
   if (!eventDate) { toast('Please select the date of the event.', 'error'); return; }
 
   const gameBlocks = collectBlocks();
