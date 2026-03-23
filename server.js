@@ -22,11 +22,10 @@ function load() {
 function save(d) { fs.writeFileSync(DATA, JSON.stringify(d, null, 2)); }
 
 // ── Google Chat Notification ────────────────────────────────
+const GOOGLE_CHAT_WEBHOOK = process.env.GOOGLE_CHAT_WEBHOOK ||
+  'https://chat.googleapis.com/v1/spaces/AAQA4-FhOUs/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=AR4WhFnnlJJQPYgQ8eaCw32RUpEjavi_dMo-0dXx5rA';
+
 async function sendNotification(sub) {
-  if (!process.env.GOOGLE_CHAT_WEBHOOK) {
-    console.log('⚠️  No GOOGLE_CHAT_WEBHOOK set — skipping notification.');
-    return;
-  }
 
   const blocks   = sub.gameBlocks || [];
   const gameList = [...new Set(blocks.map(b => b.game).filter(Boolean))].join(', ');
@@ -44,7 +43,7 @@ async function sendNotification(sub) {
     sub.notes ? `*Notes:* ${sub.notes}` : null,
   ].filter(Boolean).join('\n');
 
-  const res = await fetch(process.env.GOOGLE_CHAT_WEBHOOK, {
+  const res = await fetch(GOOGLE_CHAT_WEBHOOK, {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
     body:    JSON.stringify({ text: lines }),
@@ -137,11 +136,8 @@ app.patch('/api/submissions/:id/status', (req, res) => {
 
 // Test notification — visit /api/test-notify in browser to send a test message
 app.get('/api/test-notify', async (req, res) => {
-  if (!process.env.GOOGLE_CHAT_WEBHOOK) {
-    return res.json({ ok: false, error: 'GOOGLE_CHAT_WEBHOOK environment variable is not set.' });
-  }
   try {
-    const response = await fetch(process.env.GOOGLE_CHAT_WEBHOOK, {
+    const response = await fetch(GOOGLE_CHAT_WEBHOOK, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ text: '✅ *Test notification from GBGS Content Request Portal* — notifications are working!' }),
