@@ -16,6 +16,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // ── Storage ─────────────────────────────────────────────────
 function load() {
+  fs.mkdirSync(path.dirname(DATA), { recursive: true }); // create data/ if missing
   if (!fs.existsSync(DATA)) fs.writeFileSync(DATA, '[]');
   try { return JSON.parse(fs.readFileSync(DATA, 'utf8')); } catch { return []; }
 }
