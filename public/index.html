@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Content Request — Great Big Game Show</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="page-wrapper">
+
+  <header class="site-header">
+    <a href="/" class="logo">
+      <span class="logo-wordmark">Great Big Game Show</span>
+      <span class="logo-sub-label">Content Request Portal</span>
+    </a>
+    <nav class="header-nav">
+      <a href="/hub.html" class="nav-btn outline">🗂 Admin Hub</a>
+    </nav>
+  </header>
+
+  <div class="toast-area" id="toastArea"></div>
+
+  <!-- ── FORM ─────────────────────────────────────────── -->
+  <div id="formView">
+
+    <div class="hero-section">
+      <div class="hero-inner hero">
+        <div class="hero-eyebrow">✦ Store Content Request</div>
+        <h1>Submit <em>Custom Content</em></h1>
+        <p>Add one or more game content blocks below. Each block is tied to a specific game — mix and match as needed for your event.</p>
+      </div>
+    </div>
+
+    <main class="main-content" id="main">
+      <form id="form" novalidate>
+
+        <!-- Request Info -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon gold">👤</div>
+            <div class="card-header-text">
+              <h2>Request Info</h2>
+              <p>Who is submitting this request and what's the occasion</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="requestor">Requestor <span class="req">*</span></label>
+                <input type="text" id="requestor" placeholder="Your name" required />
+              </div>
+              <div class="form-group">
+                <label for="occasion">Occasion <span class="opt">(optional)</span></label>
+                <input type="text" id="occasion" placeholder="e.g. Birthday, Anniversary, Team Event…" />
+              </div>
+              <div class="form-group col-span-2">
+                <label for="guestName">Guest of Honor / Guest Name <span class="opt">(optional)</span></label>
+                <input type="text" id="guestName" placeholder="Name of the person being celebrated or featured" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Event Info -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon gold">📍</div>
+            <div class="card-header-text">
+              <h2>Event Details</h2>
+              <p>Your store and event information</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="storeName">Store Name <span class="req">*</span></label>
+                <input type="text" id="storeName" placeholder="e.g. GBGS Nashville" required />
+              </div>
+              <div class="form-group">
+                <label for="eventDate">Date of Event <span class="req">*</span></label>
+                <input type="date" id="eventDate" required />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Game Blocks -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon gold">🎮</div>
+            <div class="card-header-text">
+              <h2>Game Content</h2>
+              <p>Add a block for each game that needs custom content</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="game-blocks-list" id="blocksList"></div>
+            <button type="button" class="add-block-btn" id="addBlockBtn">
+              <span class="add-block-plus">+</span>
+              Add Game Content Block
+            </button>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon muted">📝</div>
+            <div class="card-header-text">
+              <h2>Additional Notes</h2>
+              <p>Anything else we should know? <span class="opt">(optional)</span></p>
+            </div>
+          </div>
+          <div class="card-body">
+            <textarea id="notes" placeholder="Special instructions, event context, or anything else our team should know…"></textarea>
+          </div>
+        </div>
+
+        <div class="submit-row">
+          <p class="submit-hint">Fields marked <span style="color:var(--purple)">✦</span> are required</p>
+          <button type="submit" class="submit-btn" id="submitBtn">
+            <span id="submitLabel">Submit Request</span>
+            <span>→</span>
+          </button>
+        </div>
+
+      </form>
+    </main>
+  </div><!-- /formView -->
+
+  <!-- ── SUCCESS ───────────────────────────────────────── -->
+  <div id="successView" style="display:none">
+    <main class="main-content">
+      <div class="card">
+        <div class="success-wrap">
+          <div class="success-glow">✓</div>
+          <h2>Request Submitted!</h2>
+          <p>Your content request has been received and our team has been notified.<br>We'll get your materials ready before your event date.</p>
+          <div class="ref-chip">Reference ID: <strong id="refId">—</strong></div>
+          <br>
+          <button class="submit-btn" onclick="resetForm()" style="margin:0 auto;display:inline-flex">
+            Submit Another Request
+          </button>
+        </div>
+      </div>
+    </main>
+  </div><!-- /successView -->
+
+  <footer class="site-footer">
+    &copy; <span id="yr"></span> Great Big Game Show &nbsp;·&nbsp; Content Request Portal
+  </footer>
+
+</div><!-- /page-wrapper -->
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  GAME DEFINITIONS
+//  Keys match CSV column names exactly for easy export
+// ═══════════════════════════════════════════════════════════
+const GAMES = {
+  "Trivia Temple": {
+    pill: "pill-tt",
+    icon: "🏛️",
+    // CSV columns (excluding flags, specialEventId): question,answerA,answerB,answerC,answerD,correctAnswer,pointLevel
+    render: renderTriviaTemple
+  },
+  "The Grid — Categories": {
+    pill: "pill-grid",
+    icon: "⬛",
+    // CSV: category,questionOne,answerOne,questionTwo,answerTwo,questionThree,answerThree,questionFour,answerFour
+    render: renderGridCategories
+  },
+  "The Grid — Wisdom Wager": {
+    pill: "pill-ww",
+    icon: "💡",
+    // CSV: category,question,answer
+    render: renderGridWisdomWager
+  },
+  "It's Elementary": {
+    pill: "pill-ie",
+    icon: "🍎",
+    // CSV: question,grade,correctAnswer,explanation,answerA,answerB,answerC,answerD
+    render: renderItsElementary
+  },
+  "Ready, Bet, Go": {
+    pill: "pill-rbg",
+    icon: "🎲",
+    // CSV: question,answerA,answerB,answerC,answerAExplanation,answerBExplanation,answerCExplanation,correctAnswer
+    render: renderReadyBetGo
+  }
+};
+
+const GAME_NAMES = Object.keys(GAMES);
+
+// ═══════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════
+let blockCounter = 0;
+
+// ═══════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════
+document.getElementById('yr').textContent = new Date().getFullYear();
+document.getElementById('addBlockBtn').addEventListener('click', () => addBlock());
+document.getElementById('form').addEventListener('submit', handleSubmit);
+addBlock(); // start with one empty block
+
+// ═══════════════════════════════════════════════════════════
+//  BLOCK MANAGEMENT
+// ═══════════════════════════════════════════════════════════
+function addBlock(presetGame = '') {
+  blockCounter++;
+  const id = `block-${blockCounter}`;
+  const list = document.getElementById('blocksList');
+
+  const wrap = document.createElement('div');
+  wrap.className = 'game-block';
+  wrap.id = id;
+  wrap.dataset.game = '';
+
+  const options = GAME_NAMES.map(g =>
+    `<option value="${esc(g)}" ${g === presetGame ? 'selected' : ''}>${esc(g)}</option>`
+  ).join('');
+
+  wrap.innerHTML = `
+    <div class="game-block-header">
+      <span class="block-number">Block ${blockCounter}</span>
+      <div class="game-select-wrap">
+        <select id="game-${id}" onchange="onGameChange('${id}', this.value)">
+          <option value="" disabled ${!presetGame ? 'selected' : ''}>— Select a game —</option>
+          ${options}
+        </select>
+      </div>
+      <button type="button" class="remove-block-btn" onclick="removeBlock('${id}')" title="Remove block">×</button>
+    </div>
+    <div class="game-block-body" id="body-${id}">
+      <div class="game-block-empty">Select a game above to see its content fields</div>
+    </div>
+  `;
+
+  list.appendChild(wrap);
+  renumberBlocks();
+
+  if (presetGame && GAMES[presetGame]) {
+    onGameChange(id, presetGame);
+  }
+}
+
+function removeBlock(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+  renumberBlocks();
+}
+
+function renumberBlocks() {
+  document.querySelectorAll('.game-block').forEach((b, i) => {
+    const num = b.querySelector('.block-number');
+    if (num) num.textContent = `Block ${i + 1}`;
+  });
+}
+
+function onGameChange(blockId, game) {
+  const wrap = document.getElementById(blockId);
+  const body = document.getElementById(`body-${blockId}`);
+
+  wrap.dataset.game = game;
+
+  if (!game || !GAMES[game]) {
+    body.innerHTML = '<div class="game-block-empty">Select a game above to see its content fields</div>';
+    return;
+  }
+
+  body.innerHTML = '';
+  GAMES[game].render(body, blockId);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  GAME RENDERERS
+// ═══════════════════════════════════════════════════════════
+
+// ── Trivia Temple ──────────────────────────────────────────
+// CSV: question,answerA,answerB,answerC,answerD,correctAnswer,pointLevel
+function renderTriviaTemple(container, bid) {
+  container.innerHTML = `
+    <div class="form-grid g1">
+      <div class="form-group">
+        <label>Question <span class="req">*</span></label>
+        <textarea data-key="question" placeholder="Enter the trivia question…" required></textarea>
+      </div>
+    </div>
+
+    <div style="font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--gray);margin-bottom:6px">Answer Options</div>
+    <div class="answer-grid">
+      ${['A','B','C','D'].map(l => `
+        <div class="answer-item">
+          <label>
+            <span class="answer-badge">${l}</span>
+            Answer ${l} <span class="req">*</span>
+          </label>
+          <input type="text" data-key="answer${l}" placeholder="Answer ${l}…" required
+            oninput="updateCorrectDropdown('${bid}')" />
+        </div>`).join('')}
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Correct Answer <span class="req">*</span></label>
+        <select data-key="correctAnswer" id="correct-${bid}" required>
+          <option value="" disabled selected>— Which answer is correct? —</option>
+          <option value="A">A</option>
+          <option value="B">B</option>
+          <option value="C">C</option>
+          <option value="D">D</option>
+        </select>
+        <span class="field-hint">Select the letter of the correct answer</span>
+      </div>
+      <div class="form-group">
+        <label>Point Level <span class="req">*</span></label>
+        <select data-key="pointLevel" required>
+          <option value="" disabled selected>— Select —</option>
+          <option value="1000">1,000</option>
+          <option value="2500">2,500</option>
+          <option value="5000">5,000</option>
+        </select>
+      </div>
+    </div>
+  `;
+}
+
+// ── The Grid — Categories ──────────────────────────────────
+// CSV: category,questionOne,answerOne,questionTwo,answerTwo,questionThree,answerThree,questionFour,answerFour
+function renderGridCategories(container, bid) {
+  const pairs = [
+    ['questionOne',   'answerOne',   '1', true],
+    ['questionTwo',   'answerTwo',   '2', true],
+    ['questionThree', 'answerThree', '3', false],
+    ['questionFour',  'answerFour',  '4', false],
+  ];
+
+  container.innerHTML = `
+    <div class="form-group">
+      <label>Category Name <span class="req">*</span></label>
+      <input type="text" data-key="category" placeholder="e.g. US Presidents, Pop Culture, Rhyme Time…" required />
+    </div>
+
+    <div style="font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--gray);margin-bottom:2px">
+      Question / Answer Pairs
+    </div>
+
+    ${pairs.map(([qKey, aKey, num, req]) => `
+      <div class="qa-pair-row">
+        <span class="pair-label">Pair ${num} ${req ? '<span style="color:var(--purple)">✦</span>' : '<span style="color:var(--text-muted);font-weight:600">(optional)</span>'}</span>
+        <div class="form-group">
+          <label>Question ${num}</label>
+          <input type="text" data-key="${qKey}" placeholder="Question ${num}…" ${req ? 'required' : ''} />
+        </div>
+        <div class="form-group">
+          <label>Answer ${num}</label>
+          <input type="text" data-key="${aKey}" placeholder="Answer ${num}…" ${req ? 'required' : ''} />
+        </div>
+      </div>`).join('')}
+  `;
+}
+
+// ── The Grid — Wisdom Wager ────────────────────────────────
+// CSV: category,question,answer
+function renderGridWisdomWager(container, bid) {
+  container.innerHTML = `
+    <div class="form-grid g1">
+      <div class="form-group">
+        <label>Category <span class="req">*</span></label>
+        <input type="text" data-key="category" placeholder="e.g. US States, Olympic History…" required />
+      </div>
+      <div class="form-group">
+        <label>Question <span class="req">*</span></label>
+        <textarea data-key="question" placeholder="The Wisdom Wager question…" required></textarea>
+      </div>
+      <div class="form-group">
+        <label>Answer <span class="req">*</span></label>
+        <input type="text" data-key="answer" placeholder="The correct answer…" required />
+      </div>
+    </div>
+  `;
+}
+
+// ── It's Elementary ────────────────────────────────────────
+// CSV: question,grade,correctAnswer,explanation,answerA,answerB,answerC,answerD
+function renderItsElementary(container, bid) {
+  container.innerHTML = `
+    <div class="form-grid g1">
+      <div class="form-group">
+        <label>Question <span class="req">*</span></label>
+        <textarea data-key="question" placeholder="Enter the question…" required></textarea>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Grade Level <span class="req">*</span></label>
+        <select data-key="grade" required>
+          <option value="" disabled selected>— Select grade —</option>
+          <option value="1st">1st Grade</option>
+          <option value="2nd">2nd Grade</option>
+          <option value="3rd">3rd Grade</option>
+          <option value="4th">4th Grade</option>
+          <option value="5th">5th Grade</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Correct Answer <span class="req">*</span></label>
+        <input type="text" data-key="correctAnswer" placeholder="The exact correct answer text…" required />
+        <span class="field-hint">Must exactly match one of the four answers below</span>
+      </div>
+    </div>
+
+    <div class="form-grid g1">
+      <div class="form-group">
+        <label>Explanation <span class="opt">(optional)</span></label>
+        <textarea data-key="explanation" placeholder="Shown after the answer is revealed…" style="min-height:66px"></textarea>
+      </div>
+    </div>
+
+    <div style="font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--gray);margin-bottom:6px">Four Answer Options</div>
+    <div class="answer-grid">
+      ${['A','B','C','D'].map(l => `
+        <div class="answer-item">
+          <label>
+            <span class="answer-badge">${l}</span>
+            Answer ${l} <span class="req">*</span>
+          </label>
+          <input type="text" data-key="answer${l}" placeholder="Answer ${l}…" required />
+        </div>`).join('')}
+    </div>
+  `;
+}
+
+// ── Ready, Bet, Go ─────────────────────────────────────────
+// CSV: question,answerA,answerB,answerC,answerAExplanation,answerBExplanation,answerCExplanation,correctAnswer
+function renderReadyBetGo(container, bid) {
+  container.innerHTML = `
+    <div class="form-grid g1">
+      <div class="form-group">
+        <label>Question <span class="req">*</span></label>
+        <textarea data-key="question" placeholder="Enter the question…" required></textarea>
+      </div>
+    </div>
+
+    <div style="font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--gray);margin-bottom:6px">Answer Options</div>
+    <div class="answer-grid">
+      ${['A','B','C'].map(l => `
+        <div class="answer-item">
+          <label>
+            <span class="answer-badge">${l}</span>
+            Answer ${l} <span class="req">*</span>
+          </label>
+          <div class="answer-with-explain">
+            <input type="text" data-key="answer${l}" placeholder="Answer ${l}…" required
+              oninput="updateCorrectDropdown('${bid}')" />
+            <input type="text" data-key="answer${l}Explanation" class="explain-input"
+              placeholder="Explanation for Answer ${l}… (optional)" />
+          </div>
+        </div>`).join('')}
+    </div>
+
+    <div class="form-group" style="max-width:280px">
+      <label>Correct Answer <span class="req">*</span></label>
+      <select data-key="correctAnswer" id="correct-${bid}" required>
+        <option value="" disabled selected>— Which answer is correct? —</option>
+        <option value="A">A</option>
+        <option value="B">B</option>
+        <option value="C">C</option>
+      </select>
+      <span class="field-hint">Select the letter of the correct answer</span>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CORRECT ANSWER DROPDOWN LABEL UPDATE
+//  Updates select options to show "A — text" for clarity
+// ═══════════════════════════════════════════════════════════
+function updateCorrectDropdown(blockId) {
+  const block = document.getElementById(blockId);
+  const sel   = document.getElementById(`correct-${blockId}`);
+  if (!block || !sel) return;
+
+  const getVal = key => {
+    const el = block.querySelector(`[data-key="${key}"]`);
+    return el ? el.value.trim() : '';
+  };
+
+  const letters = sel.options.length === 5 ? ['A','B','C','D'] : ['A','B','C'];
+  const current = sel.value;
+
+  // Rebuild options preserving selection
+  while (sel.options.length > 1) sel.remove(1);
+  letters.forEach(l => {
+    const text = getVal(`answer${l}`);
+    const opt  = new Option(text ? `${l} — ${text.substring(0, 32)}${text.length > 32 ? '…' : ''}` : l, l);
+    sel.add(opt);
+  });
+
+  if (current) sel.value = current;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  DATA COLLECTION
+// ═══════════════════════════════════════════════════════════
+function collectBlocks() {
+  const blocks = document.querySelectorAll('.game-block');
+  return Array.from(blocks).map(block => {
+    const game   = block.dataset.game;
+    const fields = {};
+    block.querySelectorAll('[data-key]').forEach(el => {
+      fields[el.dataset.key] = el.value.trim();
+    });
+
+    // Resolve correctAnswer letter → actual answer text
+    if (fields.correctAnswer && ['A','B','C','D'].includes(fields.correctAnswer)) {
+      const letter = fields.correctAnswer;
+      const text   = fields[`answer${letter}`] || '';
+      fields.correctAnswer = text;
+      fields._correctAnswerLetter = letter; // keep for reference
+    }
+
+    return { game, fields };
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  VALIDATION
+// ═══════════════════════════════════════════════════════════
+function validateBlocks(blocks) {
+  for (let i = 0; i < blocks.length; i++) {
+    const b = blocks[i];
+    if (!b.game) return `Block ${i + 1}: Please select a game.`;
+
+    const f = b.fields;
+    switch (b.game) {
+      case 'Trivia Temple':
+        if (!f.question)    return `Block ${i+1} (Trivia Temple): Question is required.`;
+        if (!f.answerA)     return `Block ${i+1} (Trivia Temple): Answer A is required.`;
+        if (!f.answerB)     return `Block ${i+1} (Trivia Temple): Answer B is required.`;
+        if (!f.answerC)     return `Block ${i+1} (Trivia Temple): Answer C is required.`;
+        if (!f.answerD)     return `Block ${i+1} (Trivia Temple): Answer D is required.`;
+        if (!f.correctAnswer)  return `Block ${i+1} (Trivia Temple): Correct answer is required.`;
+        if (!f.pointLevel)     return `Block ${i+1} (Trivia Temple): Point level is required.`;
+        break;
+      case 'The Grid — Categories':
+        if (!f.category)    return `Block ${i+1} (The Grid): Category name is required.`;
+        if (!f.questionOne) return `Block ${i+1} (The Grid): Question 1 is required.`;
+        if (!f.answerOne)   return `Block ${i+1} (The Grid): Answer 1 is required.`;
+        if (!f.questionTwo) return `Block ${i+1} (The Grid): Question 2 is required.`;
+        if (!f.answerTwo)   return `Block ${i+1} (The Grid): Answer 2 is required.`;
+        break;
+      case 'The Grid — Wisdom Wager':
+        if (!f.category) return `Block ${i+1} (Wisdom Wager): Category is required.`;
+        if (!f.question) return `Block ${i+1} (Wisdom Wager): Question is required.`;
+        if (!f.answer)   return `Block ${i+1} (Wisdom Wager): Answer is required.`;
+        break;
+      case "It's Elementary":
+        if (!f.question)       return `Block ${i+1} (It's Elementary): Question is required.`;
+        if (!f.grade)          return `Block ${i+1} (It's Elementary): Grade level is required.`;
+        if (!f.correctAnswer)  return `Block ${i+1} (It's Elementary): Correct answer is required.`;
+        if (!f.answerA)        return `Block ${i+1} (It's Elementary): Answer A is required.`;
+        if (!f.answerB)        return `Block ${i+1} (It's Elementary): Answer B is required.`;
+        if (!f.answerC)        return `Block ${i+1} (It's Elementary): Answer C is required.`;
+        if (!f.answerD)        return `Block ${i+1} (It's Elementary): Answer D is required.`;
+        break;
+      case 'Ready, Bet, Go':
+        if (!f.question)     return `Block ${i+1} (Ready, Bet, Go): Question is required.`;
+        if (!f.answerA)      return `Block ${i+1} (Ready, Bet, Go): Answer A is required.`;
+        if (!f.answerB)      return `Block ${i+1} (Ready, Bet, Go): Answer B is required.`;
+        if (!f.answerC)      return `Block ${i+1} (Ready, Bet, Go): Answer C is required.`;
+        if (!f.correctAnswer) return `Block ${i+1} (Ready, Bet, Go): Correct answer is required.`;
+        break;
+    }
+  }
+  return null;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SUBMIT
+// ═══════════════════════════════════════════════════════════
+async function handleSubmit(e) {
+  e.preventDefault();
+
+  const requestor = document.getElementById('requestor').value.trim();
+  const occasion  = document.getElementById('occasion').value.trim();
+  const guestName = document.getElementById('guestName').value.trim();
+  const storeName = document.getElementById('storeName').value.trim();
+  const eventDate = document.getElementById('eventDate').value;
+  const notes     = document.getElementById('notes').value.trim();
+
+  if (!requestor) { toast('Please enter the requestor name.', 'error'); return; }
+  if (!storeName) { toast('Please enter your store name.', 'error'); return; }
+  if (!eventDate) { toast('Please select the date of the event.', 'error'); return; }
+
+  const gameBlocks = collectBlocks();
+
+  if (gameBlocks.length === 0) {
+    toast('Please add at least one game content block.', 'error');
+    return;
+  }
+
+  const err = validateBlocks(gameBlocks);
+  if (err) { toast(err, 'error'); return; }
+
+  const btn = document.getElementById('submitBtn');
+  const lbl = document.getElementById('submitLabel');
+  btn.disabled = true;
+  lbl.innerHTML = '<span class="spinner"></span>&nbsp;Submitting…';
+
+  try {
+    const res = await fetch('/api/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requestor, guestName, occasion, storeName, eventDate, gameBlocks, notes }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Submission failed.');
+
+    document.getElementById('refId').textContent = data.id;
+    document.getElementById('formView').style.display    = 'none';
+    document.getElementById('successView').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  } catch (ex) {
+    toast(ex.message || 'Something went wrong. Please try again.', 'error');
+    btn.disabled = false;
+    lbl.textContent = 'Submit Request';
+  }
+}
+
+function resetForm() {
+  document.getElementById('form').reset();
+  document.getElementById('requestor').value = '';
+  document.getElementById('occasion').value  = '';
+  document.getElementById('guestName').value = '';
+  document.getElementById('blocksList').innerHTML = '';
+  blockCounter = 0;
+  addBlock();
+  document.getElementById('submitBtn').disabled = false;
+  document.getElementById('submitLabel').textContent = 'Submit Request';
+  document.getElementById('successView').style.display = 'none';
+  document.getElementById('formView').style.display    = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════════════════
+function toast(msg, type = 'success') {
+  const area = document.getElementById('toastArea');
+  const el   = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span>${type === 'success' ? '✓' : type === 'warn' ? '⚠' : '✕'}</span> ${msg}`;
+  area.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity 0.3s'; }, 4000);
+  setTimeout(() => el.remove(), 4400);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════════════
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>

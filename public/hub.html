@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Content Hub — Great Big Game Show</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="page-wrapper" id="pageWrapper">
+
+  <!-- ── PASSWORD GATE ──────────────────────────────────── -->
+  <div id="gateView" class="gate" style="display:none">
+    <div class="gate-card">
+      <div class="gate-icon">🔐</div>
+      <h2>Hub Access</h2>
+      <p>Enter the admin password to access the content request hub.</p>
+      <div class="form-group" style="text-align:left;margin-bottom:14px">
+        <input type="password" id="gatePass" placeholder="Password…"
+          onkeydown="if(event.key==='Enter')checkPass()" />
+      </div>
+      <button class="submit-btn" onclick="checkPass()" style="width:100%;justify-content:center">
+        Unlock Hub →
+      </button>
+      <p id="gateErr" style="color:var(--error);font-size:13px;margin-top:12px;display:none">
+        Incorrect password. Try again.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── HUB ───────────────────────────────────────────── -->
+  <div id="hubView" style="display:none">
+
+    <header class="site-header">
+      <a href="/" class="logo">
+        <span class="logo-wordmark">Great Big Game Show</span>
+        <span class="logo-sub-label">Content Hub</span>
+      </a>
+      <nav class="header-nav">
+        <button class="nav-btn outline" onclick="loadData()">↺ Refresh</button>
+        <a href="/" class="nav-btn solid">+ New Request</a>
+      </nav>
+    </header>
+
+    <div class="toast-area" id="toastArea"></div>
+
+    <main class="main-content wide">
+
+      <div style="margin-bottom:32px">
+        <div class="hero-eyebrow" style="margin-bottom:14px">⚙ Admin View</div>
+        <h1 style="font-size:32px;font-weight:900;color:var(--navy);margin-bottom:8px">Content Request <em style="font-style:normal;color:var(--purple)">Hub</em></h1>
+        <p style="color:var(--text-2);font-size:15px;font-weight:600">All incoming store content requests. Click any row for full details and to update status.</p>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat"><div class="stat-n gold"  id="sAll">—</div><div class="stat-l">Total</div></div>
+        <div class="stat"><div class="stat-n gold"  id="sNew">—</div><div class="stat-l">New</div></div>
+        <div class="stat"><div class="stat-n warn"  id="sRev">—</div><div class="stat-l">In Review</div></div>
+        <div class="stat"><div class="stat-n success" id="sDone">—</div><div class="stat-l">Completed</div></div>
+      </div>
+
+      <!-- Controls -->
+      <div class="controls-row">
+        <div class="search-wrap">
+          <span class="s-icon">🔍</span>
+          <input type="text" id="search" placeholder="Search store, game, date…" oninput="render()" />
+        </div>
+        <select id="fGame" onchange="render()" style="min-width:210px">
+          <option value="">All Games</option>
+          <option>Trivia Temple</option>
+          <option>The Grid — Categories</option>
+          <option>The Grid — Wisdom Wager</option>
+          <option>It's Elementary</option>
+          <option>Ready, Bet, Go</option>
+        </select>
+        <select id="fStatus" onchange="render()" style="min-width:160px">
+          <option value="">All Statuses</option>
+          <option>New</option>
+          <option>In Review</option>
+          <option>Completed</option>
+        </select>
+      </div>
+
+      <!-- Table -->
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th onclick="sortBy('storeName')"  data-col="storeName">Store</th>
+              <th onclick="sortBy('eventDate')"  data-col="eventDate">Event Date</th>
+              <th>Games</th>
+              <th onclick="sortBy('blockCount')" data-col="blockCount">Blocks</th>
+              <th onclick="sortBy('submittedAt')" data-col="submittedAt">Submitted</th>
+              <th onclick="sortBy('status')"     data-col="status">Status</th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+            <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--gray)">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </main>
+
+    <footer class="site-footer">
+      &copy; <span id="yr"></span> Great Big Game Show &nbsp;·&nbsp; Content Request Hub
+    </footer>
+
+  </div><!-- /hubView -->
+
+  <!-- ── DETAIL MODAL ───────────────────────────────────── -->
+  <div class="overlay" id="overlay" style="display:none" onclick="closeModal(event)">
+    <div class="modal" id="modal">
+      <div class="modal-head">
+        <div>
+          <h3 id="mTitle">—</h3>
+          <div class="msub" id="mSub">—</div>
+        </div>
+        <button class="modal-x" onclick="closeModal()">×</button>
+      </div>
+      <div class="modal-body" id="mBody"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  GAME CONFIG (pill classes + icons for display)
+// ═══════════════════════════════════════════════════════════
+const GAME_PILL = {
+  "Trivia Temple":           { cls: "pill-tt",   icon: "🏛️",  head: "mgb-tt" },
+  "The Grid — Categories":   { cls: "pill-grid", icon: "⬛",  head: "mgb-grid" },
+  "The Grid — Wisdom Wager": { cls: "pill-ww",   icon: "💡",  head: "mgb-ww" },
+  "It's Elementary":         { cls: "pill-ie",   icon: "🍎",  head: "mgb-ie" },
+  "Ready, Bet, Go":          { cls: "pill-rbg",  icon: "🎲",  head: "mgb-rbg" },
+};
+
+// Human-readable field labels (matches CSV column keys)
+const FIELD_LABELS = {
+  question:           "Question",
+  grade:              "Grade Level",
+  correctAnswer:      "Correct Answer",
+  _correctAnswerLetter: "Correct Letter",
+  explanation:        "Explanation",
+  answerA:            "Answer A",
+  answerB:            "Answer B",
+  answerC:            "Answer C",
+  answerD:            "Answer D",
+  answerAExplanation: "Answer A Explanation",
+  answerBExplanation: "Answer B Explanation",
+  answerCExplanation: "Answer C Explanation",
+  pointLevel:         "Point Level",
+  category:           "Category",
+  questionOne:        "Question 1",
+  answerOne:          "Answer 1",
+  questionTwo:        "Question 2",
+  answerTwo:          "Answer 2",
+  questionThree:      "Question 3",
+  answerThree:        "Answer 3",
+  questionFour:       "Question 4",
+  answerFour:         "Answer 4",
+  answer:             "Answer",
+};
+
+// Field display order per game
+const FIELD_ORDER = {
+  "Trivia Temple":           ["question","answerA","answerB","answerC","answerD","correctAnswer","_correctAnswerLetter","pointLevel"],
+  "The Grid — Categories":   ["category","questionOne","answerOne","questionTwo","answerTwo","questionThree","answerThree","questionFour","answerFour"],
+  "The Grid — Wisdom Wager": ["category","question","answer"],
+  "It's Elementary":         ["question","grade","correctAnswer","explanation","answerA","answerB","answerC","answerD"],
+  "Ready, Bet, Go":          ["question","answerA","answerAExplanation","answerB","answerBExplanation","answerC","answerCExplanation","correctAnswer"],
+};
+
+// ═══════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════
+let all      = [];
+let sortCol  = 'submittedAt';
+let sortDir  = 'desc';
+
+document.getElementById('yr').textContent = new Date().getFullYear();
+
+// ═══════════════════════════════════════════════════════════
+//  AUTH
+// ═══════════════════════════════════════════════════════════
+async function init() {
+  const res  = await fetch('/api/config').catch(() => ({ json: () => ({}) }));
+  const conf = await res.json();
+  if (conf.hubPasswordRequired) {
+    document.getElementById('gateView').style.display = 'flex';
+  } else {
+    showHub();
+  }
+}
+
+async function checkPass() {
+  const pw  = document.getElementById('gatePass').value;
+  const res = await fetch('/api/hub-auth', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password: pw }),
+  });
+  if (res.ok) {
+    document.getElementById('gateView').style.display = 'none';
+    showHub();
+  } else {
+    document.getElementById('gateErr').style.display = 'block';
+  }
+}
+
+function showHub() {
+  document.getElementById('hubView').style.display = 'block';
+  loadData();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════════════════════
+async function loadData() {
+  try {
+    const res = await fetch('/api/submissions');
+    all = await res.json();
+    // Attach computed blockCount for sorting
+    all.forEach(s => s.blockCount = (s.gameBlocks || []).length);
+    updateStats();
+    render();
+  } catch {
+    document.getElementById('tbody').innerHTML =
+      '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--error)">Failed to load. Is the server running?</td></tr>';
+  }
+}
+
+function updateStats() {
+  document.getElementById('sAll').textContent  = all.length;
+  document.getElementById('sNew').textContent  = all.filter(s => s.status === 'New').length;
+  document.getElementById('sRev').textContent  = all.filter(s => s.status === 'In Review').length;
+  document.getElementById('sDone').textContent = all.filter(s => s.status === 'Completed').length;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SORT + FILTER + RENDER
+// ═══════════════════════════════════════════════════════════
+function sortBy(col) {
+  sortDir = (sortCol === col && sortDir === 'asc') ? 'desc' : 'asc';
+  sortCol = col;
+  render();
+}
+
+function getFiltered() {
+  const q  = (document.getElementById('search').value  || '').toLowerCase();
+  const fg = document.getElementById('fGame').value;
+  const fs = document.getElementById('fStatus').value;
+
+  return all
+    .filter(s => {
+      const games = (s.gameBlocks || []).map(b => b.game || '').join(' ');
+      const matchQ = !q || s.storeName.toLowerCase().includes(q)
+        || games.toLowerCase().includes(q)
+        || fmtDate(s.eventDate).toLowerCase().includes(q);
+      const matchG = !fg || (s.gameBlocks || []).some(b => b.game === fg);
+      const matchS = !fs || s.status === fs;
+      return matchQ && matchG && matchS;
+    })
+    .sort((a, b) => {
+      let va = a[sortCol] ?? '', vb = b[sortCol] ?? '';
+      if (sortCol === 'submittedAt' || sortCol === 'eventDate') {
+        va = new Date(va); vb = new Date(vb);
+      } else if (sortCol === 'blockCount') {
+        va = Number(va); vb = Number(vb);
+      } else {
+        va = String(va).toLowerCase(); vb = String(vb).toLowerCase();
+      }
+      if (va < vb) return sortDir === 'asc' ? -1 : 1;
+      if (va > vb) return sortDir === 'asc' ?  1 : -1;
+      return 0;
+    });
+}
+
+function render() {
+  const rows  = getFiltered();
+  const tbody = document.getElementById('tbody');
+
+  // Sort arrows
+  document.querySelectorAll('thead th').forEach(th => {
+    const col   = th.dataset.col;
+    const arrow = col === sortCol ? (sortDir === 'asc' ? ' ↑' : ' ↓') : '';
+    th.classList.toggle('sorted', col === sortCol);
+    th.textContent = th.textContent.replace(/ [↑↓]$/, '') + arrow;
+  });
+
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="6">
+      <div class="empty-state">
+        <div class="e-icon">📭</div>
+        <h3>No submissions found</h3>
+        <p>Try adjusting your filters.</p>
+      </div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = rows.map(s => {
+    const pills = uniqueGames(s).map(g => {
+      const cfg = GAME_PILL[g] || {};
+      return `<span class="game-pill ${cfg.cls||''}">${cfg.icon||''} ${esc(g)}</span>`;
+    }).join('');
+
+    return `<tr onclick="openModal('${esc(s.id)}')">
+      <td class="store">${esc(s.storeName)}</td>
+      <td>${fmtDate(s.eventDate)}</td>
+      <td><div class="game-pills">${pills}</div></td>
+      <td style="text-align:center">${(s.gameBlocks||[]).length}</td>
+      <td>${fmtDT(s.submittedAt)}</td>
+      <td>${statusBadge(s.status)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function uniqueGames(s) {
+  return [...new Set((s.gameBlocks || []).map(b => b.game).filter(Boolean))];
+}
+
+// ═══════════════════════════════════════════════════════════
+//  MODAL
+// ═══════════════════════════════════════════════════════════
+function openModal(id) {
+  const s = all.find(x => x.id === id);
+  if (!s) return;
+
+  const blockCount = (s.gameBlocks||[]).length;
+  const subParts   = [s.storeName, fmtDate(s.eventDate)];
+  if (s.occasion)  subParts.push(s.occasion);
+  if (s.guestName) subParts.push(`Guest: ${s.guestName}`);
+  subParts.push(`${blockCount} block${blockCount !== 1 ? 's' : ''}`);
+
+  document.getElementById('mTitle').textContent = s.requestor || s.storeName;
+  document.getElementById('mSub').textContent   = subParts.join(' · ');
+
+  // Build content
+  let html = `
+    <div class="m-fields">
+      <div class="m-field"><div class="mf-label">Requestor</div><div class="mf-value">${esc(s.requestor || '—')}</div></div>
+      <div class="m-field"><div class="mf-label">Store</div><div class="mf-value">${esc(s.storeName)}</div></div>
+      ${s.guestName ? `<div class="m-field"><div class="mf-label">Guest Name</div><div class="mf-value">${esc(s.guestName)}</div></div>` : ''}
+      ${s.occasion  ? `<div class="m-field"><div class="mf-label">Occasion</div><div class="mf-value">${esc(s.occasion)}</div></div>` : ''}
+      <div class="m-field"><div class="mf-label">Event Date</div><div class="mf-value">${fmtDate(s.eventDate)}</div></div>
+      <div class="m-field"><div class="mf-label">Submitted</div><div class="mf-value" style="font-size:13px">${fmtDT(s.submittedAt)}</div></div>
+      <div class="m-field full"><div class="mf-label">Reference</div><div class="mf-value" style="font-family:monospace;font-size:12px;color:var(--gray)">${esc(s.id)}</div></div>
+      ${s.notes ? `<div class="m-field full"><div class="mf-label">Notes</div><div class="mf-value" style="white-space:pre-wrap;font-size:13px;color:var(--gray-lt)">${esc(s.notes)}</div></div>` : ''}
+    </div>
+  `;
+
+  // Game blocks
+  const blocks = s.gameBlocks || [];
+  if (blocks.length) {
+    html += `<div style="font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--gray);margin-bottom:10px">${blocks.length} Game Content Block${blocks.length !== 1 ? 's' : ''}</div>`;
+
+    blocks.forEach((b, i) => {
+      const cfg    = GAME_PILL[b.game] || { icon: '🎮', head: '' };
+      const order  = FIELD_ORDER[b.game] || Object.keys(b.fields || {});
+      const fields = b.fields || {};
+
+      const fieldsHtml = order
+        .filter(k => !k.startsWith('_') && fields[k])
+        .map(k => `
+          <div class="mgb-field">
+            <span class="mgb-key">${FIELD_LABELS[k] || k}</span>
+            <span class="mgb-val">${esc(fields[k])}</span>
+          </div>`)
+        .join('');
+
+      html += `
+        <div class="modal-game-block">
+          <div class="modal-game-block-head ${cfg.head}">
+            ${cfg.icon} Block ${i + 1} — ${esc(b.game || '(no game)')}
+          </div>
+          <div class="modal-game-block-body">
+            ${fieldsHtml || '<span style="color:var(--gray);font-style:italic">No fields filled in</span>'}
+          </div>
+        </div>`;
+    });
+  } else {
+    html += '<p style="color:var(--gray);font-style:italic">No game blocks found.</p>';
+  }
+
+  // Status update
+  html += `
+    <div class="status-row">
+      <label>Update Status</label>
+      <select onchange="updateStatus('${esc(s.id)}', this.value)" style="max-width:220px">
+        ${['New','In Review','Completed'].map(st =>
+          `<option ${s.status === st ? 'selected' : ''}>${st}</option>`
+        ).join('')}
+      </select>
+    </div>`;
+
+  document.getElementById('mBody').innerHTML = html;
+  document.getElementById('overlay').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('overlay')) return;
+  document.getElementById('overlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// ═══════════════════════════════════════════════════════════
+//  STATUS UPDATE
+// ═══════════════════════════════════════════════════════════
+async function updateStatus(id, status) {
+  try {
+    await fetch(`/api/submissions/${id}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    });
+    const s = all.find(x => x.id === id);
+    if (s) s.status = status;
+    updateStats();
+    render();
+    toast(`Status set to "${status}"`, 'success');
+  } catch {
+    toast('Failed to update status.', 'error');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════════
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function fmtDate(str) {
+  if (!str) return '—';
+  const [y,m,d] = str.split('-');
+  const M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${M[+m-1]} ${+d}, ${y}`;
+}
+
+function fmtDT(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
+    + ' · ' + d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+}
+
+function statusBadge(s) {
+  const map = { 'New':'badge-new', 'In Review':'badge-review', 'Completed':'badge-complete' };
+  return `<span class="badge ${map[s]||'badge-new'}">${s||'New'}</span>`;
+}
+
+function toast(msg, type = 'success') {
+  const area = document.getElementById('toastArea');
+  const el   = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span>${type==='success'?'✓':'⚠'}</span> ${msg}`;
+  area.appendChild(el);
+  setTimeout(() => { el.style.opacity='0'; el.style.transition='opacity 0.3s'; }, 3000);
+  setTimeout(() => el.remove(), 3400);
+}
+
+// ── Start ──────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
