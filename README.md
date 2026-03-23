@@ -98,3 +98,4 @@ To use the official Tenon font:
 2. Open `public/style.css` and uncomment the `@font-face` block near the top
 
 Until then, Nunito (loaded from Google Fonts) is used as a close match.
+ 
