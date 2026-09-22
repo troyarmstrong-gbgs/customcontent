@@ -1,0 +1,2328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Write your own trivia for the games your group will play at Great Big Game Show.">
+<!--APP_CONTEXT-->
+<style>
+  /* Baseline the page's own stylesheet builds on. */
+  :root{
+    color-scheme:dark;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  img{max-width:100%}
+  [hidden]{display:none!important}
+  /* The honeypot: present in the DOM, never on screen, never in the tab
+     order, never announced. A person cannot fill it in; a bot will. */
+  .hp{position:absolute!important;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden}
+</style>
+<title>Custom Content Submission Form</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900&display=swap">
+<style>
+  :root{
+    --navy:#021D41;
+    --stage:#071B3C;
+    --panel:#0F2851;
+    --panel-2:#16335F;
+    --line:rgba(167,181,214,.20);
+    --line-strong:rgba(167,181,214,.38);
+    --ink:#F5F6FA;
+    --muted:#A7B5D6;
+    --gold:#FFBD17;
+    --gold-soft:#FFD37B;
+    --pink:#F93A5A;
+    --purple:#9728D1;
+    --blue:#4A82FF;
+    --green:#33BC56;
+    --mint:#75E099;
+    --radius:14px;
+    --font:'Figtree',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    color-scheme: dark;
+  }
+  *{box-sizing:border-box}
+  html,body{background:var(--navy)}
+  body{
+    margin:0;font-family:var(--font);color:var(--ink);
+    background:
+      radial-gradient(1100px 620px at 50% -12%, rgba(151,40,209,.30), transparent 62%),
+      radial-gradient(760px 420px at 100% 0%, rgba(249,58,90,.18), transparent 60%),
+      var(--navy);
+    background-attachment:fixed;
+    font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1120px;margin:0 auto;padding-inline:20px;padding-block:0 140px}
+  a{color:var(--gold-soft)}
+  h1,h2,h3{text-wrap:balance;margin:0}
+  button{font-family:inherit}
+
+  /* ---------- masthead ---------- */
+  .masthead{padding-block:32px 22px;display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap}
+  .brandmark{display:flex;flex-direction:column;gap:2px}
+  .kicker{font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+  /* align-self keeps the flex column from stretching it out of ratio */
+  .brandlogo{height:58px;width:auto;align-self:flex-start;object-fit:contain;display:block;margin-bottom:10px}
+  @media (max-width:520px){ .brandlogo{height:44px} }
+  .wordmark{font-size:31px;font-weight:900;letter-spacing:-.02em;line-height:1.05;
+    background:linear-gradient(96deg,var(--purple) 0%,var(--pink) 48%,var(--gold) 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .masthead p{margin:8px 0 0;color:var(--muted);max-width:52ch;font-size:14px}
+  .ghost-btn{background:transparent;border:1px solid var(--line-strong);color:var(--muted);
+    border-radius:999px;padding:8px 16px;font-size:12.5px;font-weight:700;cursor:pointer;letter-spacing:.02em}
+  .ghost-btn:hover{color:var(--ink);border-color:var(--gold)}
+
+  /* ---------- rail ---------- */
+  .rail{display:flex;gap:6px;align-items:center;flex-wrap:wrap;
+    border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding-block:12px;margin-bottom:28px}
+  .rail-step{display:flex;align-items:center;gap:8px;padding:5px 12px 5px 6px;border-radius:999px;
+    font-size:12.5px;font-weight:700;color:var(--muted);background:transparent;border:0;cursor:pointer}
+  .rail-step .num{width:21px;height:21px;border-radius:50%;display:grid;place-items:center;
+    font-size:11px;font-weight:800;background:rgba(167,181,214,.16);color:var(--muted);flex:none}
+  .rail-step[aria-current="true"]{color:var(--navy);background:var(--gold)}
+  .rail-step[aria-current="true"] .num{background:rgba(2,29,65,.28);color:var(--navy)}
+  .rail-step.done{color:var(--mint)}
+  .rail-step.done .num{background:rgba(51,188,86,.2);color:var(--mint)}
+  .rail-step:disabled{opacity:.4;cursor:not-allowed}
+  .rail-sep{color:var(--line-strong);font-size:12px}
+
+  /* ---------- panels ---------- */
+  .panel{background:linear-gradient(180deg,rgba(22,51,95,.62),rgba(15,40,81,.62));
+    border:1px solid var(--line);border-radius:var(--radius);padding:22px}
+  .panel + .panel{margin-top:16px}
+  .section-head{margin-bottom:18px}
+  .section-head h2{font-size:22px;font-weight:800;letter-spacing:-.01em}
+  .section-head p{margin:6px 0 0;color:var(--muted);font-size:14px;max-width:62ch}
+
+  /* ---------- fields ---------- */
+  .grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+  .field{display:flex;flex-direction:column;gap:6px;min-width:0}
+  .field > label{font-size:11.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .field .hint{font-size:12.5px;color:var(--muted);margin:0}
+  input[type=text],input[type=email],input[type=date],textarea,select{
+    width:100%;background:rgba(2,29,65,.55);border:1px solid var(--line-strong);border-radius:10px;
+    color:var(--ink);font-family:inherit;font-size:14.5px;padding:10px 12px;resize:vertical}
+  textarea{min-height:64px;line-height:1.45}
+  input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-visible,
+  .gamecard:focus-within{outline:2px solid var(--gold);outline-offset:2px}
+  input::placeholder,textarea::placeholder{color:rgba(167,181,214,.55)}
+  select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+    background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:36px}
+  .counter{font-size:11.5px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums;
+    display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+  .counter > span:first-child{font-weight:500;line-height:1.35}
+  .counter > span:last-child{white-space:nowrap;flex:none}
+  .counter.warn{color:var(--gold)}
+  .counter.full{color:var(--pink)}
+  .req{color:var(--pink);font-weight:800}
+
+  /* ---------- game cards ---------- */
+  .gamegrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+  .gamecard{position:relative;border:3px solid var(--line-strong);border-radius:var(--radius);overflow:hidden;
+    background:rgba(2,29,65,.5);text-align:left;cursor:pointer;padding:0;color:inherit;display:flex;flex-direction:column;
+    transition:border-color .16s ease, transform .16s ease, box-shadow .16s ease}
+  .gamecard:hover{border-color:var(--gold-soft);transform:translateY(-2px)}
+  .gamecard[aria-pressed="true"]{border-color:var(--gold);background:rgba(255,189,23,.13);
+    box-shadow:0 0 0 4px rgba(255,189,23,.28), 0 10px 26px rgba(0,0,0,.36);transform:translateY(-3px)}
+  .gamecard[aria-pressed="true"] h3{color:var(--gold)}
+  .gamecard[aria-pressed="true"] img{filter:none}
+  .gamecard:not([aria-pressed="true"]) img{filter:saturate(.72) brightness(.82)}
+  .gamecard.noart{min-height:190px;justify-content:center;
+    background:linear-gradient(150deg,rgba(151,40,209,.22),rgba(2,29,65,.55));border-style:dashed}
+  .gamecard.noart[aria-pressed="true"]{border-style:solid;background:rgba(255,189,23,.13)}
+  .gamecard.noart .body{padding:22px}
+  .gamecard.noart h3{font-size:20px}
+  .gamecard img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;max-width:100%}
+  .gamecard .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:5px}
+  .gamecard .body p{margin:0}
+  .gamecard h3{font-size:17px;font-weight:800}
+  .gamecard .meta{font-size:12.5px;color:var(--muted)}
+  .gamecard .tick{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:50%;
+    background:rgba(2,29,65,.85);border:2px solid var(--line-strong);display:grid;place-items:center;
+    font-size:17px;font-weight:900;color:transparent;z-index:1}
+  .gamecard[aria-pressed="true"] .tick{background:var(--gold);border-color:var(--navy);color:var(--navy);
+    box-shadow:0 2px 8px rgba(0,0,0,.4)}
+
+  /* ---------- game section in step 3 ---------- */
+  .gamehead{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap;margin-bottom:20px}
+  .gamehead .shots{display:flex;gap:8px;flex:none}
+  .gamehead .shots img{width:190px;border-radius:10px;border:1px solid var(--line-strong);aspect-ratio:16/9;object-fit:cover;max-width:100%}
+  .gamehead .txt{flex:1 1 260px;min-width:0}
+  .gamehead h2{font-size:21px;font-weight:800}
+  .gamehead p{margin:6px 0 0;color:var(--muted);font-size:13.5px}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+  .tab{border:1px solid var(--line-strong);background:transparent;color:var(--muted);border-radius:999px;
+    padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;display:flex;gap:7px;align-items:center}
+  .tab[aria-selected="true"]{background:var(--panel-2);color:var(--ink);border-color:var(--gold)}
+  .tab .dot{width:7px;height:7px;border-radius:50%;background:var(--pink);flex:none}
+  .tab .dot.ok{background:var(--mint)}
+
+  .qcard{border:3px solid var(--line-strong);border-radius:16px;background:rgba(2,29,65,.62);
+    padding:18px 20px 20px;margin-bottom:26px;box-shadow:0 6px 20px rgba(0,0,0,.28)}
+  .qcard:focus-within{border-color:var(--gold)}
+  /* inside a one-question section the surrounding box already frames it */
+  .qcard.bare{border:0;background:transparent;box-shadow:none;padding:0;margin-bottom:6px}
+  .qcard.bare:focus-within{border:0}
+  .qcard > header{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    margin:-18px -20px 18px;padding:12px 20px;border-bottom:3px solid var(--line-strong);
+    background:rgba(22,51,95,.75);border-radius:13px 13px 0 0}
+  .qcard h4{margin:0;font-size:13.5px;font-weight:900;letter-spacing:.09em;text-transform:uppercase;color:var(--gold-soft)}
+
+  /* repeated-answer warning */
+  .dupwarn{grid-column:1/-1;margin:2px 0 0;font-size:13px;font-weight:700;color:var(--pink)}
+  input.err,textarea.err{border-color:var(--pink);background:rgba(249,58,90,.10)}
+
+  /* Trivia Temple point rooms */
+  .level{border:3px solid var(--lv,var(--line-strong));border-radius:16px;margin-bottom:16px;
+    background:rgba(2,29,65,.40);overflow:hidden}
+  .level.lv0{--lv:#4A82FF}
+  .level.lv1{--lv:#75E099}
+  .level.lv2{--lv:#FFBD17}
+  .level.lv3{--lv:#F7935C}
+  .level.lv4{--lv:#F93A5A}
+  .level.gridcat{--lv:#FFBD17}
+  .level.gridfinal{--lv:#AF71C9}
+
+  /* It's Elementary — one color per grade */
+  .el0{--tn:#FFBD17}
+  .el1{--tn:#75E099}
+  .el2{--tn:#F93A5A}
+  .el3{--tn:#AF71C9}
+  .el4{--tn:#4A82FF}
+  .qcard.toned{border-color:var(--tn)}
+  .qcard.toned > header{border-bottom-color:var(--tn)}
+  .qcard.toned h4{color:var(--tn)}
+  .reccard.toned{border-color:var(--tn)}
+  .reccard.toned .rechead{border-bottom-color:var(--tn)}
+  .reccard.toned .recname{color:var(--tn)}
+  .levelhead{width:100%;display:flex;align-items:center;gap:12px;background:transparent;border:0;
+    padding:15px 18px;cursor:pointer;color:var(--ink);font-family:inherit;text-align:left}
+  .levelhead:hover{background:rgba(255,255,255,.04)}
+  .level.open .levelhead{border-bottom:3px solid var(--lv);background:rgba(255,255,255,.05)}
+  .lvcaret{color:var(--lv);font-size:13px;flex:none}
+  .lvname{font-size:16px;font-weight:900;letter-spacing:.02em;color:var(--lv);flex:1;min-width:0}
+  .lvcount{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+    white-space:nowrap;font-variant-numeric:tabular-nums}
+  .level.finished .lvcount{color:var(--mint)}
+  .levelbody{padding:20px 18px 2px}
+  .levelbody .qcard{border-color:var(--lv)}
+  .levelbody .qcard > header{border-bottom-color:var(--lv)}
+  .levelbody .qcard h4{color:var(--lv)}
+  .status-pip{font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .status-pip.ok{color:var(--mint)}
+  .answerrow{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+  @media (max-width:760px){ .answerrow{grid-template-columns:repeat(2,minmax(0,1fr))} }
+  .subgroup{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+    border-top:1px solid var(--line);padding-top:12px;margin-top:4px;grid-column:1/-1}
+  .levelband{display:flex;align-items:center;gap:10px;margin:22px 0 12px;color:var(--gold);
+    font-size:12px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+  .levelband::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line-strong),transparent)}
+
+  /* ---------- review / checks ---------- */
+  .check{border:1px solid var(--line-strong);border-radius:12px;padding:14px 16px;margin-bottom:12px;background:rgba(2,29,65,.42)}
+  .check .where{font-size:11.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+  .check .why{font-size:13px;color:var(--muted);margin:10px 0 12px}
+  .diff{font-size:14px;line-height:1.55;word-break:break-word}
+  .diff .was{color:var(--muted);text-decoration:line-through;text-decoration-color:rgba(249,58,90,.75)}
+  .diff .now{color:var(--mint);font-weight:600}
+  .check .acts{display:flex;gap:8px;flex-wrap:wrap}
+  .mini{border:1px solid var(--line-strong);background:transparent;color:var(--ink);border-radius:8px;
+    padding:6px 13px;font-size:12.5px;font-weight:700;cursor:pointer}
+  .mini.primary{background:var(--mint);border-color:var(--mint);color:var(--navy)}
+  .mini:hover{border-color:var(--gold)}
+  .mini[disabled]{opacity:.45;cursor:default}
+
+  .summary-row{display:flex;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .summary-row:last-child{border-bottom:0}
+  .summary-row .k{color:var(--muted)}
+  .summary-row .v{font-weight:700;text-align:right}
+
+  /* ---------- action bar ---------- */
+  .actionbar{position:fixed;left:0;right:0;bottom:0;background:rgba(2,29,65,.94);
+    border-top:1px solid var(--line-strong);backdrop-filter:blur(10px);z-index:20;
+    padding:12px 20px;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+  .actionbar .inner{max-width:1120px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .statusline{flex:1 1 200px;min-width:0;font-size:13px;color:var(--muted)}
+  .statusline strong{color:var(--ink);font-weight:700}
+  .statusline .bad{color:var(--pink);font-weight:700}
+  .btn{border:0;border-radius:10px;padding:11px 22px;font-size:14.5px;font-weight:800;cursor:pointer;
+    background:var(--gold);color:var(--navy);letter-spacing:.01em}
+  .btn:hover{background:var(--gold-soft)}
+  .btn[disabled]{opacity:.45;cursor:not-allowed}
+  .btn.secondary{background:transparent;color:var(--muted);border:1px solid var(--line-strong)}
+  .btn.secondary:hover{color:var(--ink);background:transparent;border-color:var(--gold)}
+
+  /* ---------- admin ---------- */
+  /* store manager */
+  .storelist{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 18px}
+  .storechip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line-strong);
+    border-radius:999px;padding:6px 6px 6px 14px;font-size:13.5px;font-weight:600;background:rgba(2,29,65,.5)}
+  .storex{width:22px;height:22px;border-radius:50%;border:0;background:rgba(167,181,214,.16);
+    color:var(--muted);font-size:15px;line-height:1;cursor:pointer;padding:0;flex:none}
+  .storex:hover{background:var(--pink);color:var(--navy)}
+  .addstore{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .addstore input{flex:1 1 280px;min-width:0}
+  .eventrow{margin-top:18px;padding-top:16px;border-top:1px solid var(--line);
+    display:flex;flex-direction:column;gap:12px}
+  .eventrow .hint{margin:0}
+  .editgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+  .editgrid input,.editgrid select{padding:9px 12px;font-size:14px}
+  .editgrid select{padding-right:34px}
+
+  .toolbar{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;
+    padding:14px 0 16px;border-bottom:1px solid var(--line);margin-bottom:16px}
+  .tool{display:flex;flex-direction:column;gap:5px;min-width:0;flex:0 0 auto}
+  .tool.grow{flex:1 1 220px}
+  .toollabel{font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .toolbar input,.toolbar select{padding:8px 11px;font-size:13.5px}
+  .toolbar select{padding-right:34px}
+
+  .subrow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;
+    padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(2,29,65,.42);margin-bottom:10px}
+  .subrow:hover{border-color:var(--gold-soft)}
+  .subrow.is-loaded{border-left:3px solid var(--mint)}
+  .subopen{background:transparent;border:0;padding:3px 0;text-align:left;cursor:pointer;
+    color:inherit;font-family:inherit;min-width:0}
+  .subside{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+  .subrow .who{font-weight:700;font-size:15px}
+  .subrow .sub{font-size:12.5px;color:var(--muted);margin-top:3px}
+  .chk{width:24px;height:24px;flex:none;border-radius:7px;border:1.5px solid var(--line-strong);
+    background:transparent;color:var(--navy);font-size:14px;font-weight:900;line-height:1;
+    display:grid;place-items:center;cursor:pointer;padding:0}
+  .chk:hover{border-color:var(--mint)}
+  .chk.on{background:var(--mint);border-color:var(--mint)}
+  .chk.small{width:17px;height:17px;border-radius:5px;font-size:11px;border-width:1.5px}
+  .chiptoggle{display:inline-flex;align-items:center;gap:8px}
+  .chiptoggle.on{border-color:var(--mint);color:var(--mint)}
+  .mini.danger{border-color:var(--pink);color:var(--pink);font-weight:800}
+  @media (max-width:560px){
+    .subrow{grid-template-columns:auto minmax(0,1fr)}
+    .subside{grid-column:2;justify-content:flex-start}
+  }
+  .pill{font-size:10.5px;font-weight:900;letter-spacing:.09em;text-transform:uppercase;
+    padding:4px 9px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
+  .pill.new{color:var(--gold)}
+  .pill.loaded{color:var(--mint)}
+  .acts{display:flex;gap:8px;flex-wrap:wrap}
+  .panel.sent{border-color:var(--mint);border-left:3px solid var(--mint)}
+  .reccard{border:2px solid var(--line-strong);border-radius:14px;background:rgba(2,29,65,.50);
+    padding:0 16px 12px;margin-bottom:16px}
+  .rechead{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    margin:0 -16px 4px;padding:9px 16px;border-bottom:2px solid var(--line-strong);
+    background:rgba(22,51,95,.6);border-radius:11px 11px 0 0}
+  .recname{font-size:12px;font-weight:900;letter-spacing:.09em;text-transform:uppercase;color:var(--gold-soft)}
+  /* question-then-answers blocks */
+  .rlabel{display:block;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--muted);margin-bottom:3px}
+  .rq,.rtitle{padding:11px 0 12px;border-bottom:1px solid var(--line)}
+  .rq .copyval,.rq .plainval,.rtitle .copyval,.rtitle .plainval{font-size:16.5px;font-weight:700;line-height:1.4}
+  .rtitle .copyval,.rtitle .plainval{color:var(--gold-soft)}
+  .ropt,.ra{display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:10px;align-items:center;
+    padding:4px 0;border-bottom:1px solid rgba(167,181,214,.10)}
+  .ropt:last-child,.ra:last-child{border-bottom:0}
+  .rbadge{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;flex:none;
+    font-size:11.5px;font-weight:900;color:var(--muted);background:rgba(167,181,214,.14)}
+  .rbadge.right{background:var(--mint);color:var(--navy)}
+  .rbadge.ans{background:rgba(255,189,23,.18);color:var(--gold)}
+  .rbadge.qq{background:rgba(74,130,255,.22);color:#9CBEFF}
+  .rband{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+    margin:12px 0 2px;padding-top:10px;border-top:1px solid var(--line)}
+  .rband:first-of-type{border-top:0}
+  .ropt.right .copyval,.ropt.right .plainval{color:var(--mint);font-weight:700}
+  .rtag{font-size:9.5px;font-weight:900;letter-spacing:.11em;text-transform:uppercase;color:var(--mint);
+    border:1px solid var(--mint);border-radius:999px;padding:3px 8px;white-space:nowrap}
+  .plainval{padding:4px 0;font-size:14.5px;line-height:1.45;word-break:break-word}
+  .plainval.blank{color:var(--muted)}
+  .level.flat{background:transparent;border-width:2px;margin-bottom:18px}
+  .levelhead.static{cursor:default;padding:11px 16px;border-bottom:2px solid var(--lv);background:rgba(255,255,255,.05)}
+  .levelhead.static:hover{background:rgba(255,255,255,.05)}
+  .level.flat .levelbody{padding:14px 14px 2px}
+  .level.flat .reccard{border-color:var(--lv)}
+  .level.flat .recname{color:var(--lv)}
+
+  .fieldline{display:grid;grid-template-columns:168px minmax(0,1fr);gap:10px;align-items:start;
+    border-bottom:1px solid var(--line)}
+  .fieldline:last-child{border-bottom:0}
+  .fl-label{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--muted);padding:11px 0 0}
+  .copyval{position:relative;width:100%;text-align:left;background:transparent;border:1px solid transparent;
+    border-radius:8px;color:var(--ink);font-family:inherit;font-size:14px;line-height:1.45;
+    padding:9px 34px 9px 10px;cursor:copy;display:block;word-break:break-word}
+  .copyval:hover{background:rgba(255,189,23,.10);border-color:rgba(255,189,23,.45)}
+  .copyval.blank{color:var(--muted);cursor:default}
+  .copyval.blank:hover{background:transparent;border-color:transparent}
+  .copyval-ico{position:absolute;right:10px;top:9px;font-size:13px;color:var(--muted);opacity:0}
+  .copyval:hover .copyval-ico{opacity:1;color:var(--gold)}
+  .copyval.blank .copyval-ico{display:none}
+  .tsvwrap{margin-top:14px}
+  .tsvwrap > summary{cursor:pointer;font-size:12px;font-weight:800;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--muted);padding:8px 0;list-style:none}
+  .tsvwrap > summary::marker{content:""}
+  .tsvwrap > summary::before{content:"\25B8 ";color:var(--gold)}
+  .tsvwrap[open] > summary::before{content:"\25BE "}
+  .tsvwrap > summary:hover{color:var(--ink)}
+  @media (max-width:560px){ .fieldline{grid-template-columns:1fr;gap:0}
+    .fl-label{padding:10px 0 0} .copyval{padding-top:2px} }
+  pre.tsv{background:rgba(2,29,65,.72);border:1px solid var(--line-strong);border-radius:10px;
+    padding:12px;overflow-x:auto;font-size:12px;line-height:1.7;margin:0;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre;color:var(--gold-soft)}
+  .copybar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:18px 0 8px;flex-wrap:wrap}
+  .copybar h3{font-size:14px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--ink)}
+  table.read{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:10px}
+  table.read th{text-align:left;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);
+    font-weight:800;padding:8px 10px;border-bottom:1px solid var(--line-strong);white-space:nowrap}
+  table.read td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  .tablescroll{overflow-x:auto}
+  .empty{color:var(--muted);font-size:14px;padding:26px 0;text-align:center}
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:86px;background:var(--mint);color:var(--navy);
+    font-weight:800;font-size:13.5px;padding:9px 18px;border-radius:999px;z-index:40;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+  .notice{border:1px solid var(--line-strong);border-left:3px solid var(--gold);border-radius:8px;
+    padding:12px 14px;font-size:13.5px;color:var(--muted);background:rgba(2,29,65,.42)}
+  .notice strong{color:var(--ink)}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+  @media (max-width:520px){
+    .wordmark{font-size:25px}
+    .gamehead .shots img{width:140px}
+  }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead">
+    <div class="brandmark">
+      <img class="brandlogo" id="brandLogo" src="/static/img/logo.png" alt="Great Big Game Show" hidden>
+      <span class="kicker" id="brandFallback">Great Big Game Show</span>
+      <span class="wordmark">Custom Content Submission Form</span>
+      <p id="subhead">Write your own trivia for the games your group will play in the studio. Everything you type here goes straight to our production team for review!</p>
+    </div>
+    <a class="ghost-btn" id="modeBtn" href="/review">Producer view</a>
+  </header>
+
+  <div class="hp" aria-hidden="true">
+    <label for="hp-website">Website</label>
+    <input id="hp-website" name="website" type="text" tabindex="-1" autocomplete="off">
+  </div>
+
+  <nav class="rail" id="rail" aria-label="Steps"></nav>
+  <main id="view"></main>
+</div>
+
+<div class="actionbar" id="actionbar"><div class="inner" id="actionbarInner"></div></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* =======================================================================
+     Game definitions — field names, order and character limits are taken
+     from the Custom Content Request sheet.
+     ======================================================================= */
+  var GRADES = ["1st","2nd","3rd","4th","5th"];
+  var TEMPLE_LEVEL_ORDER = [100,500,1000,2500,5000];
+  var TEMPLE_LEVELS = [];
+  TEMPLE_LEVEL_ORDER.forEach(function(lv){ TEMPLE_LEVELS.push(lv,lv,lv,lv); });
+
+  function f(key,label,limit,opts){
+    var o = opts || {};
+    return {key:key,label:label,limit:limit,type:o.type||"text",optional:!!o.optional,
+            hint:o.hint||"",from:o.from||null,group:o.group||"",soft:o.soft||0,placeholder:o.placeholder||"",
+            inline:!!o.inline};
+  }
+
+  var GAMES = [
+    {
+      id:"elementary",
+      name:"It's Elementary",
+      tagline:"Solve five school trivia questions!",
+      blurb:"Pop quiz time! Face five elementary school trivia questions and aim for an A+! Can you pass the test and graduate top of the class?",
+      images:["/static/img/elementary.jpg"],
+      shotNote:"Question and four answers on the classroom board.",
+      count:5,
+      countLabel:"5 questions, one per grade",
+      rowLabel:function(i){ return GRADES[i]+" Grade"; },
+      fields:function(){
+        return [
+          f("question","Question",100,{type:"textarea",placeholder:"The Pyramids of Giza are in what part of Africa?"}),
+          f("a","Answer A",35,{placeholder:"Northeast",inline:true}),
+          f("b","Answer B",35,{placeholder:"Northwest",inline:true}),
+          f("c","Answer C",35,{placeholder:"Southeast",inline:true}),
+          f("d","Answer D",35,{placeholder:"Southwest",inline:true}),
+          f("correct","Correct answer",0,{type:"choice",from:["a","b","c","d"]})
+        ];
+      },
+      columns:["Question","Grade","Correct Answer","Answer Explanation","Answer A","Answer B","Answer C","Answer D"],
+      hideInAdmin:["Answer Explanation","Grade"],
+      toneFor:function(i){ return "toned el"+i; },
+      exports:[{slug:"its-elementary",
+        headers:["question","grade","correctAnswer","explanation","answerA","answerB","answerC","answerD","flags","difficulty","specialEventId"],
+        rows:function(rows){
+          return rows.slice(0,5).map(function(r,i){
+            r=r||{};
+            return [r.question||"",GRADES[i],r.correct||"","",r.a||"",r.b||"",r.c||"",r.d||"","","",""];
+          });
+        }}],
+      linesFor:function(r){ return mcLines(r,["a","b","c","d"],"text"); },
+      exportRow:function(r,i){
+        return [r.question||"",GRADES[i],r.correct||"","",r.a||"",r.b||"",r.c||"",r.d||""];
+      }
+    },
+    {
+      id:"readybetgo",
+      name:"Ready, Bet, Go!",
+      tagline:"Wager chips on your most confident answers",
+      blurb:"Confidence is your currency. For each trivia question, place three giant poker chips on one, two, or three possible answers based on your team’s confidence. Will you play it safe or go all in?",
+      images:["/static/img/readybetgo.jpg"],
+      shotNote:"Three answers, three chips, one question at a time.",
+      count:10,
+      countLabel:"10 questions",
+      rowLabel:function(i){ return "Question "+(i+1); },
+      fields:function(){
+        return [
+          f("question","Question",200,{type:"textarea",placeholder:"The sports brand Nike is named after the Greek goddess of…"}),
+          f("a","Answer A",30,{placeholder:"Speed",inline:true}),
+          f("b","Answer B",35,{placeholder:"Victory",inline:true}),
+          f("c","Answer C",35,{placeholder:"Strength",inline:true}),
+          f("correct","Correct answer",0,{type:"choice",from:["a","b","c"],letters:true})
+        ];
+      },
+      columns:["Question","Answer A","Answer B","Answer C","Answer A Explanation","Answer B Explanation","Answer C Explanation","Correct Answer"],
+      linesFor:function(r){ return mcLines(r,["a","b","c"],"letter"); },
+      exports:[{slug:"ready-bet-go",
+        headers:["question","answerA","answerB","answerC","answerAExplanation","answerBExplanation","answerCExplanation","correctAnswer","flags","difficulty","specialEventId"],
+        rows:function(rows){
+          return rows.slice(0,10).map(function(r){
+            r=r||{};
+            return [r.question||"",r.a||"",r.b||"",r.c||"","","","",r.correct||"","","",""];
+          });
+        }}],
+      exportRow:function(r){
+        return [r.question||"",r.a||"",r.b||"",r.c||"","N/A","N/A","N/A",r.correctLetter||""];
+      }
+    },
+    {
+      id:"temple",
+      name:"Trivia Temple",
+      tagline:"Complete the quest by guessing answers correctly",
+      blurb:"Unlock the Treasure! Face a high stakes quest through five, locked rooms. Answer the question in each room correctly to advance. But, beware…a single wrong answer and you leave the temple with nothing! Can your team conquer the temple and claim the treasure, or will you plummet to the dungeon?",
+      images:["/static/img/temple.jpg"],
+      shotNote:"Four levers, four answers, one room at a time.",
+      count:20,
+      countLabel:"20 questions across 5 point levels",
+      rowLabel:function(i){ return TEMPLE_LEVELS[i].toLocaleString()+" pts · Q"+((i%4)+1); },
+      groups:TEMPLE_LEVEL_ORDER.map(function(lv,gi){
+        return {label:lv.toLocaleString()+" point room",short:lv.toLocaleString()+" pts",
+                tone:"lv"+gi, indices:[gi*4,gi*4+1,gi*4+2,gi*4+3]};
+      }),
+      fields:function(){
+        return [
+          f("question","Question",200,{type:"textarea",placeholder:"You'd be most likely to cry while making what dish?"}),
+          f("a","Answer A",30,{placeholder:"French onion soup",inline:true}),
+          f("b","Answer B",35,{placeholder:"Steak and potatoes",inline:true}),
+          f("c","Answer C",35,{placeholder:"Caesar salad",inline:true}),
+          f("d","Answer D",35,{placeholder:"Apple pie",inline:true}),
+          f("correct","Correct answer",0,{type:"choice",from:["a","b","c","d"]})
+        ];
+      },
+      columns:["Question","Answer A","Answer B","Answer C","Answer D","Correct Answer","Point Level"],
+      hideInAdmin:["Point Level"],
+      exports:[{slug:"trivia-temple",
+        headers:["question","answerA","answerB","answerC","answerD","correctAnswer","pointLevel","flags","difficulty","specialEventId"],
+        rows:function(rows){
+          return rows.slice(0,20).map(function(r,i){
+            r=r||{};
+            return [r.question||"",r.a||"",r.b||"",r.c||"",r.d||"",r.correct||"",String(TEMPLE_LEVELS[i]),"","",""];
+          });
+        }}],
+      linesFor:function(r){ return mcLines(r,["a","b","c","d"],"text"); },
+      exportRow:function(r,i){
+        return [r.question||"",r.a||"",r.b||"",r.c||"",r.d||"",r.correct||"",String(TEMPLE_LEVELS[i])];
+      }
+    },
+    {
+      id:"grid",
+      name:"The Grid",
+      tagline:"Answer questions right to avoid a board malfunction",
+      blurb:"This board is electrifying! Choose from four categories, each with four questions — select your point value and buzz in with the right answer to score. Will your team surge? Or will you short circuit under pressure?",
+      images:["/static/img/grid-board.jpg","/static/img/grid-question.jpg"],
+      shotNote:"The board, and a single clue pulled off it.",
+      count:5,
+      countLabel:"4 categories × 4 questions, plus the Wisdom Wager",
+      rowLabel:function(i){ return i<4 ? "Category "+(i+1) : "Wisdom Wager"; },
+      groups:[0,1,2,3].map(function(i){
+        return {
+          tone:"gridcat", indices:[i],
+          label:function(rows){
+            var nm=((rows[i]||{}).cat||"").trim();
+            return nm ? "Category "+(i+1)+" · "+nm : "Category "+(i+1);
+          },
+          progress:function(g,rows){
+            var r=rows[i]||{}, done=0;
+            [["q1","a1"],["q2","a2"],["q3","a3"],["q4","a4"]].forEach(function(t){
+              if((r[t[0]]||"").trim() && (r[t[1]]||"").trim()) done++;
+            });
+            return {done:done,total:4};
+          }
+        };
+      }).concat([{tone:"gridfinal",indices:[4],label:"Wisdom Wager"}]),
+      fields:function(i){
+        if(i===4){
+          return [
+            f("finalCat","Final category name",20,{placeholder:"World Capitals"}),
+            f("finalQ","Final question",200,{type:"textarea",placeholder:"This Nordic capital sits on two islands and a peninsula."}),
+            f("finalA","Final answer",30,{placeholder:"Helsinki"})
+          ];
+        }
+        return [
+          f("cat","Category name",20,{placeholder:"In February"}),
+          f("q1","100 point question",200,{type:"textarea",placeholder:"In a leap year, February has this many days."}),
+          f("a1","100 point answer",30,{placeholder:"29"}),
+          f("q2","200 point question",200,{type:"textarea"}),
+          f("a2","200 point answer",30),
+          f("q3","300 point question",200,{type:"textarea"}),
+          f("a3","300 point answer",30),
+          f("q4","400 point question",200,{type:"textarea"}),
+          f("a4","400 point answer",30)
+        ];
+      },
+      columns:["Category","100 Points","Answer 1","200 Points","Answer 2","300 Points","Answer 3","400 Points","Answer 4"],
+      exportRow:function(r,i){
+        if(i===4) return null;
+        return [r.cat||"",r.q1||"",r.a1||"",r.q2||"",r.a2||"",r.q3||"",r.a3||"",r.q4||"",r.a4||""];
+      },
+      exportExtra:function(rows){
+        var fr = rows[4]||{};
+        return {heading:"Wisdom Wager",columns:["Final Category","Final Question","Final Answer"],
+                rows:[[fr.finalCat||"",fr.finalQ||"",fr.finalA||""]]};
+      },
+      // Two files: the four categories, and the Wisdom Wager on its own.
+      exports:[
+        {slug:"the-grid-categories",label:"Categories",
+         headers:["category","questionOne","answerOne","questionTwo","answerTwo","questionThree",
+                  "answerThree","questionFour","answerFour","flags","difficulty","specialEventId"],
+         rows:function(rows){
+           return rows.slice(0,4).map(function(r){
+             r=r||{};
+             return [r.cat||"",r.q1||"",r.a1||"",r.q2||"",r.a2||"",r.q3||"",r.a3||"",
+                     r.q4||"",r.a4||"","","",""];
+           });
+         }},
+        {slug:"the-grid-wisdom-wager",label:"Wisdom Wager",
+         headers:["category","question","answer","flags","difficulty","specialEventId"],
+         rows:function(rows){
+           var r=rows[4]||{};
+           return [[r.finalCat||"",r.finalQ||"",r.finalA||"","","",""]];
+         }}
+      ],
+      linesFor:function(r,i){
+        if(i===4){
+          return [{kind:"title",label:"Final category",value:r.finalCat||""},
+                  {kind:"band",value:"Final question"},
+                  {kind:"a",badge:"Q",label:"Final question",value:r.finalQ||""},
+                  {kind:"a",badge:"A",label:"Final answer",value:r.finalA||""}];
+        }
+        var L=[{kind:"title",label:"Category",value:r.cat||""}];
+        [["q1","a1","100 points"],["q2","a2","200 points"],["q3","a3","300 points"],
+         ["q4","a4","400 points"]].forEach(function(t){
+          L.push({kind:"band",value:t[2]});
+          L.push({kind:"a",badge:"Q",label:t[2]+" question",value:r[t[0]]||""});
+          L.push({kind:"a",badge:"A",label:t[2]+" answer",value:r[t[1]]||""});
+        });
+        return L;
+      }
+    },
+    {
+      id:"single",
+      name:"One Question Only",
+      tagline:"Submit one question and one answer. We will work it into the show!",
+      blurb:"Submit one question and one answer. We will work it into the show!",
+      images:[],
+      count:1,
+      countLabel:"1 question",
+      rowLabel:function(){ return "Your question"; },
+      fields:function(){
+        return [
+          f("question","Question",200,{type:"textarea",
+            placeholder:"What is the first letter of the alphabet?"}),
+          f("answer","Answer",100,{placeholder:"A"})
+        ];
+      },
+      columns:["Question","Answer"],
+      exportRow:function(r){ return [r.question||"",r.answer||""]; },
+      exports:[{slug:"one-question-only",
+        headers:["question","answer","flags","difficulty","specialEventId"],
+        rows:function(rows){
+          var r=rows[0]||{};
+          return [[r.question||"",r.answer||"","","",""]];
+        }}],
+      linesFor:function(r){
+        return [{kind:"a",badge:"Q",label:"Question",value:r.question||""},
+                {kind:"a",badge:"A",label:"Answer",value:r.answer||""}];
+      }
+    }
+  ];
+
+  function gameById(id){ for(var i=0;i<GAMES.length;i++){ if(GAMES[i].id===id) return GAMES[i]; } return null; }
+  var LETTERS = {a:"A",b:"B",c:"C",d:"D"};
+
+  /* Question-then-answers shape, shared by the review step and the producer view. */
+  function mcLines(r,keys,markBy){
+    var L=[{kind:"q",label:"Question",value:r.question||""}];
+    keys.forEach(function(k){
+      var v=r[k]||"";
+      var isRight = markBy==="letter"
+        ? (r.correctLetter===LETTERS[k])
+        : (!!v && r.correct===v);
+      L.push({kind:"opt",letter:LETTERS[k],label:"Answer "+LETTERS[k],value:v,correct:isRight});
+    });
+    return L;
+  }
+
+  /* =======================================================================
+     State
+     ======================================================================= */
+  // Filled from the server on load. Empty until then, so a guest can never
+  // pick a store the server would reject.
+  var STORES = [];
+
+  var DRAFT_KEY = "gbgs-custom-content-draft-v1";
+
+  var state = {
+    mode:"form",            // form | admin
+    step:0,                 // 0 contact, 1 games, 2 content, 3 review, 4 done
+    activeGame:null,
+    submitter:{name:"",email:"",eventDate:"",group:"",location:""},
+    picked:[],
+    data:{},                // gameId -> array of row objects
+    openGroup:{},           // gameId -> open point-level index
+    submitting:false,
+    submittedId:"",
+    justSubmitted:"",
+    admin:{rows:[],storeRows:[],loading:true,open:null,error:"",
+           checks:[],reviewState:"idle",reviewMsg:"",
+           q:"",store:"",status:"",sort:"submitted-desc",
+           storesView:false,storeDraft:"",editDraft:null}
+  };
+
+  /* Everything the server told us about this page load. The mode decides
+     which half of the app runs; the server, not this flag, enforces access. */
+  var APP = window.__APP__ || {mode:"public"};
+  var CAN_EDIT = !!APP.canEdit, IS_ADMIN = !!APP.isAdmin;
+  var OPENED_AT = Date.now();
+  var pollTimer = null;
+
+  /* One JSON helper for every call. Rejects with {status, detail, data} so
+     callers can tell "you can't do that" from "that didn't work". */
+  function api(method, url, body){
+    var opts = {method:method, credentials:"same-origin", headers:{}};
+    if(body !== undefined){
+      opts.headers["Content-Type"] = "application/json";
+      opts.body = JSON.stringify(body);
+    }
+    return fetch(url, opts).then(function(r){
+      return r.text().then(function(t){
+        var data = {};
+        try { data = t ? JSON.parse(t) : {}; } catch(e){}
+        if(!r.ok){
+          var err = new Error(data.detail || data.error || ("HTTP " + r.status));
+          err.status = r.status; err.data = data;
+          throw err;
+        }
+        return data;
+      });
+    });
+  }
+
+  function rowsFor(gid){
+    var g=gameById(gid);
+    if(!state.data[gid]){
+      var arr=[];
+      for(var i=0;i<g.count;i++) arr.push({});
+      state.data[gid]=arr;
+    }
+    return state.data[gid];
+  }
+
+  /* ---------- persistence of the in-progress draft (this browser only) ---------- */
+  function saveDraft(){
+    try{
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({
+        submitter:state.submitter, picked:state.picked, data:state.data, step:state.step, activeGame:state.activeGame
+      }));
+    }catch(e){}
+  }
+  function loadDraft(){
+    try{
+      var raw=localStorage.getItem(DRAFT_KEY); if(!raw) return;
+      var d=JSON.parse(raw);
+      if(d && typeof d==="object"){
+        state.submitter = Object.assign(state.submitter, d.submitter||{});
+        state.picked = Array.isArray(d.picked)?d.picked:[];
+        state.data = d.data||{};
+        state.step = Math.min(3, d.step||0);
+        state.activeGame = d.activeGame||null;
+      }
+    }catch(e){}
+  }
+  function clearDraft(){ try{ localStorage.removeItem(DRAFT_KEY); }catch(e){} }
+
+  /* =======================================================================
+     Validation
+     ======================================================================= */
+  function fieldValue(gid,ri,key){ var r=rowsFor(gid)[ri]||{}; return r[key]||""; }
+
+  function overLimit(fd,val){ return fd.limit>0 && val.length>fd.limit; }
+
+  function rowComplete(g,ri){
+    var fields=g.fields(ri), rows=rowsFor(g.id), r=rows[ri]||{};
+    for(var i=0;i<fields.length;i++){
+      var fd=fields[i];
+      if(fd.optional) continue;
+      var v=(r[fd.key]||"").trim();
+      if(!v) return false;
+      if(overLimit(fd,r[fd.key]||"")) return false;
+    }
+    if(dupKeys(g,ri).length) return false;
+    return true;
+  }
+  function rowStarted(g,ri){
+    var r=rowsFor(g.id)[ri]||{};
+    for(var k in r){ if(r[k] && String(r[k]).trim()) return true; }
+    return false;
+  }
+  function gameProgress(g){
+    var done=0; for(var i=0;i<g.count;i++){ if(rowComplete(g,i)) done++; }
+    return {done:done,total:g.count};
+  }
+  function countOverLimit(){
+    var n=0;
+    for(var p=0;p<state.picked.length;p++){
+      var g=gameById(state.picked[p]); if(!g) continue;
+      var rows=rowsFor(g.id);
+      for(var i=0;i<g.count;i++){
+        var fields=g.fields(i);
+        for(var j=0;j<fields.length;j++){
+          if(overLimit(fields[j],(rows[i]||{})[fields[j].key]||"")) n++;
+        }
+      }
+    }
+    return n;
+  }
+  function contactValid(){
+    var s=state.submitter;
+    return !!(s.name.trim() && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s.email.trim()) && s.eventDate && s.location);
+  }
+  function contentComplete(){
+    if(!state.picked.length) return false;
+    for(var p=0;p<state.picked.length;p++){
+      var g=gameById(state.picked[p]); if(!g) return false;
+      var pr=gameProgress(g);
+      if(pr.done<pr.total) return false;
+    }
+    return true;
+  }
+
+  /* =======================================================================
+     Rendering helpers
+     ======================================================================= */
+  function el(tag,cls,text){
+    var n=document.createElement(tag);
+    if(cls) n.className=cls;
+    if(text!=null) n.textContent=text;
+    return n;
+  }
+  function clear(n){ while(n.firstChild) n.removeChild(n.firstChild); }
+
+  var toastTimer=null;
+  function toast(msg){
+    var old=document.querySelector(".toast"); if(old) old.remove();
+    var t=el("div","toast",msg); document.body.appendChild(t);
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(function(){ t.remove(); },1900);
+  }
+
+  function copyText(txt,label){
+    function done(){ toast(label||"Copied"); }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(done,function(){ legacy(); });
+    } else legacy();
+    function legacy(){
+      var ta=document.createElement("textarea");
+      ta.value=txt; ta.style.position="fixed"; ta.style.opacity="0";
+      document.body.appendChild(ta); ta.select();
+      try{ document.execCommand("copy"); done(); }catch(e){ toast("Press Ctrl+C to copy"); }
+      ta.remove();
+    }
+  }
+
+  /* ---------- one input field ---------- */
+  function buildField(g,ri,fd){
+    var wrap=el("div","field");
+    var id="fld-"+g.id+"-"+ri+"-"+fd.key;
+    var lab=el("label",null,null);
+    lab.setAttribute("for",id);
+    lab.appendChild(document.createTextNode(fd.label));
+    if(!fd.optional && fd.type!=="choice"){ var rq=el("span","req"," *"); lab.appendChild(rq); }
+    wrap.appendChild(lab);
+
+    var rows=rowsFor(g.id);
+    if(!rows[ri]) rows[ri]={};
+    var cur=rows[ri][fd.key]||"";
+
+    var input;
+    if(fd.type==="choice"){
+      input=document.createElement("select");
+      input.id=id;
+      var empty=document.createElement("option");
+      empty.value=""; empty.textContent="Pick the correct answer";
+      input.appendChild(empty);
+      // The correct answer can only be picked once every option is written and
+      // no two options are the same.
+      var missing=0;
+      for(var m=0;m<fd.from.length;m++){ if(!(rows[ri][fd.from[m]]||"").trim()) missing++; }
+      var dups=dupKeys(g,ri);
+      var ready = missing===0 && !dups.length;
+      if(ready){
+        for(var i=0;i<fd.from.length;i++){
+          var k=fd.from[i], v=(rows[ri][k]||"").trim();
+          var opt=document.createElement("option");
+          opt.value=v; opt.textContent=LETTERS[k]+". "+v;
+          opt.dataset.letter=LETTERS[k];
+          input.appendChild(opt);
+        }
+      }
+      input.value = cur && Array.prototype.some.call(input.options,function(o){return o.value===cur;}) ? cur : "";
+      if(!ready){
+        input.disabled=true;
+        empty.textContent = missing
+          ? "Fill in all "+fd.from.length+" answers first"
+          : "Fix the repeated answers first";
+      }
+      input.addEventListener("change",function(){
+        rows[ri][fd.key]=input.value;
+        var sel=input.options[input.selectedIndex];
+        rows[ri].correctLetter = sel && sel.dataset ? (sel.dataset.letter||"") : "";
+        saveDraft(); renderChrome(); refreshRowStatus(g,ri);
+      });
+      wrap.appendChild(input);
+      if(cur && !input.value){
+        var warn=el("p","hint","Heads up: “"+cur+"” no longer matches any answer option. Pick again.");
+        warn.style.color="var(--pink)";
+        wrap.appendChild(warn);
+      }
+      return wrap;
+    }
+
+    if(fd.type==="textarea"){
+      input=document.createElement("textarea");
+      input.rows = fd.limit>120 ? 3 : 2;
+    } else {
+      input=document.createElement("input");
+      input.type="text";
+    }
+    input.id=id;
+    input.value=cur;
+    input.spellcheck=true;
+    input.setAttribute("autocapitalize","sentences");
+    if(fd.placeholder) input.placeholder=fd.placeholder;
+    if(fd.limit>0) input.maxLength=fd.limit;
+    wrap.appendChild(input);
+
+    var counter=null;
+    if(fd.limit>0){
+      counter=el("div","counter");
+      var hintSpan=el("span",null,fd.hint||"");
+      var countSpan=el("span",null,"");
+      counter.appendChild(hintSpan); counter.appendChild(countSpan);
+      wrap.appendChild(counter);
+      updateCounter();
+    } else if(fd.hint){
+      wrap.appendChild(el("p","hint",fd.hint));
+    }
+
+    function updateCounter(){
+      if(!counter) return;
+      var len=input.value.length;
+      counter.lastChild.textContent = len+" / "+fd.limit;
+      counter.classList.remove("warn","full");
+      if(fd.soft && len>fd.soft && len<=fd.limit) counter.classList.add("warn");
+      if(len>=fd.limit) counter.classList.add("full");
+    }
+
+    input.addEventListener("input",function(){
+      rows[ri][fd.key]=input.value;
+      updateCounter();
+      saveDraft();
+      refreshDup(g,ri);
+      refreshRowStatus(g,ri);
+      renderChrome();
+      // Any answer field feeds the correct-answer picker, inline or not.
+      if(answerKeys(g,ri).indexOf(fd.key)>-1) scheduleChoiceRefresh(g,ri);
+    });
+    return wrap;
+  }
+
+  /* ---------- repeated answers ---------- */
+  function answerKeys(g,ri){
+    var fields=g.fields(ri);
+    for(var i=0;i<fields.length;i++){ if(fields[i].type==="choice") return fields[i].from||[]; }
+    return [];
+  }
+  function dupKeys(g,ri){
+    var keys=answerKeys(g,ri), rows=rowsFor(g.id), r=rows[ri]||{};
+    var seen={}, bad={};
+    keys.forEach(function(k){
+      var v=(r[k]||"").trim().toLowerCase();
+      if(!v) return;
+      if(seen[v]){ bad[k]=1; bad[seen[v]]=1; } else seen[v]=k;
+    });
+    return Object.keys(bad);
+  }
+  function refreshDup(g,ri){
+    var bad=dupKeys(g,ri), keys=answerKeys(g,ri);
+    keys.forEach(function(k){
+      var node=document.getElementById("fld-"+g.id+"-"+ri+"-"+k);
+      if(node) node.classList.toggle("err",bad.indexOf(k)>-1);
+    });
+    var msg=document.getElementById("dup-"+g.id+"-"+ri);
+    if(msg){
+      msg.hidden=!bad.length;
+      if(bad.length){
+        msg.textContent="Answer "+bad.map(function(k){return LETTERS[k];}).sort().join(" and ")+
+          " are the same. Change one so every option is different.";
+      }
+    }
+  }
+
+  var choiceTimer=null;
+  function scheduleChoiceRefresh(g,ri){
+    clearTimeout(choiceTimer);
+    choiceTimer=setTimeout(function(){ rebuildChoice(g,ri); },400);
+  }
+  function rebuildChoice(g,ri){
+    var fields=g.fields(ri);
+    for(var i=0;i<fields.length;i++){
+      if(fields[i].type!=="choice") continue;
+      var fd=fields[i];
+      var sel=document.getElementById("fld-"+g.id+"-"+ri+"-"+fd.key);
+      if(!sel) continue;
+      var host=sel.parentNode;
+      var fresh=buildField(g,ri,fd);
+      host.parentNode.replaceChild(fresh,host);
+    }
+  }
+
+  function refreshRowStatus(g,ri){
+    var pip=document.getElementById("pip-"+g.id+"-"+ri);
+    if(pip){
+      var ok=rowComplete(g,ri);
+      pip.textContent = ok ? "Complete" : (rowStarted(g,ri) ? "In progress" : "Empty");
+      pip.className = "status-pip"+(ok?" ok":"");
+    }
+    // Point-room headers count up as you type, not only when reopened.
+    if(g.groups){
+      g.groups.forEach(function(grp,gi){
+        var cnt=document.getElementById("lvcount-"+g.id+"-"+gi);
+        if(!cnt) return;
+        var pr=groupProgress(g,grp);
+        cnt.textContent=progressText(pr);
+        var nm=document.getElementById("lvname-"+g.id+"-"+gi);
+        if(nm) nm.textContent=groupLabel(g,grp);
+        var sec=cnt.closest(".level");
+        if(sec) sec.classList.toggle("finished",pr.done===pr.total);
+      });
+    }
+    var dot=document.getElementById("tabdot-"+g.id);
+    if(dot){
+      var pr=gameProgress(g);
+      dot.className="dot"+(pr.done===pr.total?" ok":"");
+      var cnt=document.getElementById("tabcount-"+g.id);
+      if(cnt) cnt.textContent=pr.done+"/"+pr.total;
+    }
+  }
+
+  /* =======================================================================
+     Steps
+     ======================================================================= */
+  var STEPS=["Your details","Choose games","Write content","Review & send"];
+
+  function renderRail(){
+    var rail=document.getElementById("rail");
+    clear(rail);
+    if(state.mode==="admin"){ rail.hidden=true; return; }
+    rail.hidden=false;
+    STEPS.forEach(function(label,i){
+      if(i){ rail.appendChild(el("span","rail-sep","›")); }
+      var b=el("button","rail-step");
+      b.type="button";
+      b.appendChild(el("span","num",String(i+1)));
+      b.appendChild(el("span",null,label));
+      if(i===state.step) b.setAttribute("aria-current","true");
+      var reachable = i===0 || (i===1 && contactValid()) || (i===2 && contactValid() && state.picked.length) ||
+                      (i===3 && contactValid() && state.picked.length && contentComplete());
+      var passed = i<state.step;
+      if(passed) b.classList.add("done");
+      b.disabled = !reachable;
+      b.addEventListener("click",function(){ state.step=i; render(); window.scrollTo({top:0,behavior:"smooth"}); });
+      rail.appendChild(b);
+    });
+  }
+
+  function stepContact(){
+    var wrapper=document.createDocumentFragment();
+
+    if(state.justSubmitted){
+      var ok=el("section","panel sent");
+      var okh=el("div","section-head");
+      okh.appendChild(el("h2","","Sent to production"));
+      okh.appendChild(el("p","",state.justSubmitted+" went through. Reference "+state.submittedId+
+        ". Start another set below whenever you're ready."));
+      ok.appendChild(okh);
+      var dismiss=el("button","mini","Dismiss"); dismiss.type="button";
+      dismiss.addEventListener("click",function(){ state.justSubmitted=""; render(); });
+      ok.appendChild(dismiss);
+      wrapper.appendChild(ok);
+    }
+
+    var p=el("section","panel");
+    var head=el("div","section-head");
+    head.appendChild(el("h2","","Your Details"));
+    head.appendChild(el("p","","Please fill out your information so we can contact you if anything needs a second look."));
+    p.appendChild(head);
+
+    var grid=el("div","grid-2");
+    grid.appendChild(textField("Your name","name","text","Jordan Reyes",true));
+    grid.appendChild(textField("Email address","email","email","jordan@company.com",true));
+    grid.appendChild(textField("Date of event","eventDate","date","",true));
+    grid.appendChild(textField("Group or company","group","text","Acme Logistics",false));
+    grid.appendChild(storeField());
+    p.appendChild(grid);
+    wrapper.appendChild(p);
+    return wrapper;
+
+    function storeField(){
+      var w=el("div","field");
+      var l=el("label",null,"Store");
+      l.setAttribute("for","sub-location");
+      l.appendChild(el("span","req"," *"));
+      w.appendChild(l);
+      var sel=document.createElement("select");
+      sel.id="sub-location";
+      var first=document.createElement("option");
+      first.value=""; first.textContent = STORES.length ? "Select a store" : "Loading stores\u2026";
+      sel.appendChild(first);
+      if(!STORES.length) sel.disabled=true;
+      STORES.forEach(function(s){
+        var o=document.createElement("option"); o.value=s; o.textContent=s; sel.appendChild(o);
+      });
+      // Keep a store from an older draft selectable even if the list has moved on.
+      if(state.submitter.location && STORES.indexOf(state.submitter.location)<0){
+        var extra=document.createElement("option");
+        extra.value=state.submitter.location; extra.textContent=state.submitter.location;
+        sel.appendChild(extra);
+      }
+      sel.value=state.submitter.location||"";
+      sel.addEventListener("change",function(){
+        state.submitter.location=sel.value; saveDraft(); renderChrome();
+      });
+      w.appendChild(sel);
+      return w;
+    }
+
+    function textField(label,key,type,ph,required,list){
+      var w=el("div","field");
+      var id="sub-"+key;
+      var l=el("label",null,label);
+      l.setAttribute("for",id);
+      if(required) l.appendChild(el("span","req"," *"));
+      w.appendChild(l);
+      var inp=document.createElement("input");
+      inp.type=type; inp.id=id; inp.value=state.submitter[key]||""; inp.placeholder=ph;
+      if(type==="email") inp.autocomplete="email";
+      if(list && list.length){
+        var dl=document.createElement("datalist");
+        dl.id=id+"-list";
+        list.forEach(function(s){ var o=document.createElement("option"); o.value=s; dl.appendChild(o); });
+        w.appendChild(dl);
+        inp.setAttribute("list",dl.id);
+        inp.autocomplete="off";
+      }
+      inp.addEventListener("input",function(){
+        state.submitter[key]=inp.value; saveDraft(); renderChrome();
+      });
+      w.appendChild(inp);
+      return w;
+    }
+  }
+
+  function stepGames(){
+    var frag=document.createDocumentFragment();
+    var p=el("section","panel");
+    var head=el("div","section-head");
+    head.appendChild(el("h2","","Which game(s) do you want to customize?"));
+    p.appendChild(head);
+
+    var grid=el("div","gamegrid");
+    GAMES.forEach(function(g){
+      var hasArt=!!(g.images && g.images.length);
+      var card=el("button","gamecard"+(hasArt?"":" noart"));
+      card.type="button";
+      var on=state.picked.indexOf(g.id)>-1;
+      card.setAttribute("aria-pressed",on?"true":"false");
+      if(hasArt){
+        var img=document.createElement("img");
+        img.src=g.images[0]; img.alt=g.name+" on the studio screen"; img.loading="lazy";
+        card.appendChild(img);
+      }
+      card.appendChild(el("span","tick","✓"));
+      var body=el("div","body");
+      body.appendChild(el("h3","",g.name));
+      body.appendChild(el("p","meta",g.tagline));
+      card.appendChild(body);
+      card.addEventListener("click",function(){
+        var idx=state.picked.indexOf(g.id);
+        if(idx>-1) state.picked.splice(idx,1); else state.picked.push(g.id);
+        if(state.picked.indexOf(state.activeGame)<0) state.activeGame=state.picked[0]||null;
+        saveDraft(); render();
+      });
+      grid.appendChild(card);
+    });
+    p.appendChild(grid);
+    frag.appendChild(p);
+    return frag;
+  }
+
+  function stepContent(){
+    var frag=document.createDocumentFragment();
+    if(!state.picked.length){
+      var e=el("section","panel");
+      e.appendChild(el("p","empty","Go back a step and pick at least one game."));
+      frag.appendChild(e); return frag;
+    }
+    if(state.picked.indexOf(state.activeGame)<0) state.activeGame=state.picked[0];
+
+    if(state.picked.length>1){
+      var tabs=el("div","tabs");
+      state.picked.forEach(function(gid){
+        var g=gameById(gid), pr=gameProgress(g);
+        var t=el("button","tab"); t.type="button";
+        t.setAttribute("aria-selected", gid===state.activeGame ? "true":"false");
+        var dot=el("span","dot"+(pr.done===pr.total?" ok":"")); dot.id="tabdot-"+gid;
+        t.appendChild(dot);
+        t.appendChild(el("span",null,g.name));
+        var c=el("span",null,pr.done+"/"+pr.total); c.id="tabcount-"+gid; c.style.opacity=".7";
+        t.appendChild(c);
+        t.addEventListener("click",function(){ state.activeGame=gid; saveDraft(); render(); window.scrollTo({top:0,behavior:"smooth"}); });
+        tabs.appendChild(t);
+      });
+      frag.appendChild(tabs);
+    }
+
+    var g=gameById(state.activeGame);
+    var p=el("section","panel");
+
+    var gh=el("div","gamehead");
+    if(g.images && g.images.length){
+      var shots=el("div","shots");
+      g.images.forEach(function(src){
+        var im=document.createElement("img"); im.src=src; im.alt=g.name+" reference screen"; im.loading="lazy";
+        shots.appendChild(im);
+      });
+      gh.appendChild(shots);
+    }
+    var txt=el("div","txt");
+    txt.appendChild(el("h2","",g.name));
+    txt.appendChild(el("p","",g.blurb));
+    gh.appendChild(txt);
+    p.appendChild(gh);
+    frag.appendChild(p);
+
+    if(g.groups){
+      if(state.openGroup[g.id]==null) state.openGroup[g.id]=firstUnfinishedGroup(g);
+      g.groups.forEach(function(grp,gi){
+        var open = state.openGroup[g.id]===gi;
+        var pr=groupProgress(g,grp);
+
+        var sec=el("section","level "+grp.tone+(open?" open":"")+(pr.done===pr.total?" finished":""));
+        var hd=el("button","levelhead"); hd.type="button";
+        hd.setAttribute("aria-expanded",open?"true":"false");
+        hd.appendChild(el("span","lvcaret",open?"▾":"▸"));
+        var nm=el("span","lvname",groupLabel(g,grp));
+        nm.id="lvname-"+g.id+"-"+gi;
+        hd.appendChild(nm);
+        var cnt=el("span","lvcount",progressText(pr));
+        cnt.id="lvcount-"+g.id+"-"+gi;
+        hd.appendChild(cnt);
+        hd.addEventListener("click",function(){
+          state.openGroup[g.id] = open ? -1 : gi;
+          saveDraft(); render();
+        });
+        sec.appendChild(hd);
+        if(open){
+          var body=el("div","levelbody");
+          // A one-question section already names itself in its own header.
+          var bare = grp.indices.length===1;
+          grp.indices.forEach(function(ix){ body.appendChild(questionCard(g,ix,bare)); });
+          sec.appendChild(body);
+        }
+        frag.appendChild(sec);
+      });
+      return frag;
+    }
+
+    for(var i=0;i<g.count;i++){ frag.appendChild(questionCard(g,i)); }
+    return frag;
+  }
+
+  function groupLabel(g,grp,rows){
+    return typeof grp.label==="function" ? grp.label(rows||rowsFor(g.id)) : grp.label;
+  }
+  function groupProgress(g,grp,rows){
+    var rs=rows||rowsFor(g.id);
+    if(grp.progress) return grp.progress(g,rs);
+    var done=0;
+    grp.indices.forEach(function(ix){ if(rowComplete(g,ix)) done++; });
+    return {done:done,total:grp.indices.length};
+  }
+  function progressText(pr){
+    if(pr.total===1) return pr.done ? "Written" : "Not written";
+    return pr.done+" of "+pr.total+" written";
+  }
+  function firstUnfinishedGroup(g){
+    for(var gi=0;gi<g.groups.length;gi++){
+      var all=true;
+      for(var j=0;j<g.groups[gi].indices.length;j++){
+        if(!rowComplete(g,g.groups[gi].indices[j])){ all=false; break; }
+      }
+      if(!all) return gi;
+    }
+    return 0;
+  }
+
+  function questionCard(g,ri,bare){
+    var card=el("section","qcard"+(g.toneFor?" "+g.toneFor(ri):"")+(bare?" bare":""));
+    if(!bare){
+      var head=document.createElement("header");
+      head.appendChild(el("h4","",g.rowLabel(ri)));
+      var pip=el("span","status-pip","");
+      pip.id="pip-"+g.id+"-"+ri;
+      head.appendChild(pip);
+      card.appendChild(head);
+    }
+
+    var grid=el("div","grid-2");
+    var fields=g.fields(ri);
+    var inlineHost=null;
+    fields.forEach(function(fd){
+      if(fd.group){
+        grid.appendChild(el("div","subgroup",fd.group));
+      }
+      var node=buildField(g,ri,fd);
+      if(fd.inline){
+        if(!inlineHost){ inlineHost=el("div","answerrow"); grid.appendChild(inlineHost); }
+        inlineHost.appendChild(node);
+        return;
+      }
+      inlineHost=null;
+      if(fd.type==="textarea") node.style.gridColumn="1/-1";
+      grid.appendChild(node);
+    });
+    var dup=el("p","dupwarn");
+    dup.id="dup-"+g.id+"-"+ri;
+    dup.hidden=true;
+    grid.appendChild(dup);
+
+    card.appendChild(grid);
+    setTimeout(function(){ refreshRowStatus(g,ri); refreshDup(g,ri); },0);
+    return card;
+  }
+
+  /* =======================================================================
+     Step 4 — review & send
+     ======================================================================= */
+  function stepReview(){
+    var frag=document.createDocumentFragment();
+
+    var sp=el("section","panel");
+    var sh=el("div","section-head");
+    sh.appendChild(el("h2","","Check it over"));
+    sh.appendChild(el("p","","Here's what we'll send to production. Give it one last read. You can jump back to any game to change something."));
+    sp.appendChild(sh);
+
+    var s=state.submitter;
+    [["Name",s.name],["Email",s.email],["Event date",s.eventDate?formatDate(s.eventDate):""],
+     ["Group",s.group||"\u2014"],["Venue",s.location||"\u2014"]].forEach(function(pair){
+      var r=el("div","summary-row");
+      r.appendChild(el("span","k",pair[0]));
+      r.appendChild(el("span","v",pair[1]||"\u2014"));
+      sp.appendChild(r);
+    });
+    state.picked.forEach(function(gid){
+      var g=gameById(gid), pr=gameProgress(g);
+      var r=el("div","summary-row");
+      r.appendChild(el("span","k",g.name));
+      r.appendChild(el("span","v",pr.done+" of "+pr.total+" written"));
+      sp.appendChild(r);
+    });
+    frag.appendChild(sp);
+
+    state.picked.forEach(function(gid){
+      var g=gameById(gid), rows=rowsFor(gid);
+      var sec=el("section","panel");
+      var bar=el("div","copybar");
+      bar.appendChild(el("h3","",g.name));
+      var edit=el("button","mini","Edit this game"); edit.type="button";
+      edit.addEventListener("click",function(){
+        state.activeGame=gid; state.step=2; render(); window.scrollTo(0,0);
+      });
+      bar.appendChild(edit);
+      sec.appendChild(bar);
+
+      sec.appendChild(gameBody(g,rows,false));
+      frag.appendChild(sec);
+    });
+
+    return frag;
+  }
+
+  function formatDate(iso){
+    try{
+      var d=new Date(iso+"T12:00:00");
+      return d.toLocaleDateString(undefined,{year:"numeric",month:"long",day:"numeric"});
+    }catch(e){ return iso; }
+  }
+
+  /* =======================================================================
+     Submitting
+     ======================================================================= */
+  function buildSubmission(){
+    var payload={
+      name:state.submitter.name.trim(),
+      email:state.submitter.email.trim(),
+      eventDate:state.submitter.eventDate,
+      group:state.submitter.group.trim(),
+      location:state.submitter.location.trim(),
+      games:state.picked.slice(),
+      content:{},
+      submittedAt:new Date().toISOString(),
+      status:"new"
+    };
+    state.picked.forEach(function(gid){
+      payload.content[gid]=rowsFor(gid).map(function(r){
+        var o={}; for(var k in r){ if(r[k]!=null && String(r[k]).length) o[k]=String(r[k]); } return o;
+      });
+    });
+    return payload;
+  }
+
+  function submit(){
+    if(state.submitting) return;
+    state.submitting=true; renderChrome();
+    var doc=buildSubmission();
+    var games=state.picked.map(function(gid){ return gameById(gid).name; }).join(", ");
+    doc.elapsedMs = Date.now() - OPENED_AT;
+    doc.website = (document.getElementById("hp-website")||{}).value || "";
+    api("POST","/api/submissions",doc).then(function(res){
+      // Straight back to a clean first page, ready for the next group.
+      state.submitting=false;
+      state.submittedId=res.reference||"";
+      state.justSubmitted=games;
+      state.step=0;
+      state.picked=[];
+      state.data={};
+      state.activeGame=null;
+      state.submitter={name:"",email:"",eventDate:"",group:"",location:""};
+      clearDraft();
+      render(); window.scrollTo(0,0);
+    }).catch(function(e){
+      state.submitting=false;
+      var problems = e.data && e.data.problems;
+      var msg;
+      if(problems && problems.length){
+        msg = "A few things need fixing before this can be sent:\n\n\u2022 " +
+              problems.slice(0,8).join("\n\u2022 ") +
+              (problems.length>8 ? "\n\u2022 \u2026and "+(problems.length-8)+" more." : "");
+      } else if(e.status===429){
+        msg = e.message;
+      } else {
+        msg = "That didn't send ("+(e.message||"unknown error")+"). Your answers are still here \u2014 try again in a moment.";
+      }
+      alert(msg);
+      renderChrome();
+    });
+  }
+
+  /* =======================================================================
+     Producer view
+     ======================================================================= */
+  /* ---------- CSV export, matching the database's import format ---------- */
+  /* The server renders the CSV so the file is identical whoever asks for it,
+     and the browser saves it the ordinary way. */
+  function csvUrl(row,gameId,slug){
+    return "/api/review/submissions/"+row.id+"/csv/"+encodeURIComponent(gameId)+
+           "/"+encodeURIComponent(slug);
+  }
+
+
+  /* ---------- store list, kept in the database ---------- */
+  var storesLoaded=false;
+  function loadStores(){
+    api("GET","/api/stores").then(function(res){
+      storesLoaded=true;
+      STORES = (res.stores||[]).map(String);
+      // A guest sitting on step 1 gets the current list without reloading.
+      if(state.mode==="form" && state.step===0) render();
+      if(state.mode==="admin" && state.admin.storesView) render();
+    }).catch(function(){});
+  }
+
+  /* The producer view needs ids to retire a store, so it reads the fuller list. */
+  function loadStoreRows(){
+    api("GET","/api/review/stores").then(function(res){
+      state.admin.storeRows = res.stores || [];
+      STORES = state.admin.storeRows.filter(function(s){ return s.active; })
+                                    .map(function(s){ return s.name; });
+      if(state.admin.storesView) render();
+    }).catch(function(e){
+      toast("Couldn't load stores ("+(e.message||"error")+")");
+    });
+  }
+
+  function addStore(name,btn){
+    api("POST","/api/review/stores",{name:name}).then(function(){
+      state.admin.storeDraft="";
+      toast("Store added");
+      loadStoreRows();
+    }).catch(function(e){
+      if(btn) btn.disabled=false;
+      toast(e.status===409 ? "That store is already on the list"
+                           : "Couldn't add it ("+(e.message||"error")+")");
+    });
+  }
+
+  function retireStore(store){
+    api("DELETE","/api/review/stores/"+store.id).then(function(){
+      toast(store.name+" removed");
+      loadStoreRows();
+    }).catch(function(e){
+      toast("Couldn't remove it ("+(e.message||"error")+")");
+    });
+  }
+
+  function storesPanel(){
+    var frag=document.createDocumentFragment();
+    var p=el("section","panel");
+
+    var bar=el("div","copybar"); bar.style.marginTop="0";
+    bar.appendChild(el("h3","","Stores"));
+    var back=el("button","mini","← Submissions"); back.type="button";
+    back.addEventListener("click",function(){ state.admin.storesView=false; render(); window.scrollTo(0,0); });
+    bar.appendChild(back);
+    p.appendChild(bar);
+
+    p.appendChild(el("p","hint","These are the options guests choose from on the form. A removed store stays on any submission that already used it."));
+
+    var listWrap=el("div","storelist");
+    var active=(state.admin.storeRows||[]).filter(function(s){ return s.active; });
+    active.forEach(function(s){
+      var chip=el("div","storechip");
+      chip.appendChild(el("span",null,s.name));
+      var x=el("button","storex","\u00d7"); x.type="button";
+      x.title="Remove "+s.name;
+      x.setAttribute("aria-label","Remove "+s.name);
+      x.addEventListener("click",function(){ retireStore(s); });
+      chip.appendChild(x);
+      listWrap.appendChild(chip);
+    });
+    if(!active.length) listWrap.appendChild(el("p","empty","No stores yet. Add the first one below."));
+    p.appendChild(listWrap);
+
+    var addRow=el("div","addstore");
+    var inp=document.createElement("input");
+    inp.type="text"; inp.id="newstore"; inp.placeholder="Add a store, e.g. Nashville — Opry Mills";
+    inp.value=state.admin.storeDraft||"";
+    inp.addEventListener("input",function(){ state.admin.storeDraft=inp.value; });
+    var add=el("button","mini primary","Add store"); add.type="button";
+    function doAdd(){
+      var v=(inp.value||"").trim();
+      if(!v){ toast("Type a store name first"); return; }
+      add.disabled=true;
+      addStore(v,add);
+    }
+    add.addEventListener("click",doAdd);
+    inp.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); doAdd(); } });
+    addRow.appendChild(inp); addRow.appendChild(add);
+    p.appendChild(addRow);
+
+    frag.appendChild(p);
+    return frag;
+  }
+
+  function absorb(rows){
+    rows.sort(function(a,b){ return String(b.submittedAt||"").localeCompare(String(a.submittedAt||"")); });
+    state.admin.rows=rows;
+    state.admin.loading=false;
+    state.admin.error="";
+    if(state.admin.open){
+      var still=null;
+      for(var i=0;i<rows.length;i++){ if(rows[i].id===state.admin.open.id){ still=rows[i]; break; } }
+      state.admin.open = still;
+    }
+    // Redraw just the list when one is on screen, so a refresh never steals
+    // focus from the search box mid-keystroke.
+    var host=document.getElementById("adm-list");
+    if(host && !state.admin.open){ drawList(host); return; }
+    render();
+  }
+
+  function fetchSubmissions(){
+    return api("GET","/api/review/submissions").then(function(res){
+      absorb(res.submissions||[]);
+    }).catch(function(e){
+      state.admin.loading=false;
+      state.admin.error = e.status===403
+        ? "Your account doesn't have access to this app yet. Ask an admin to grant you a role."
+        : "Couldn't load submissions ("+(e.message||"unknown")+"). Try Refresh.";
+      render();
+    });
+  }
+
+  function loadSubmissions(){
+    state.admin.loading=true;
+    state.admin.error="";
+    render();
+    fetchSubmissions();
+    // No live stream here, so check back on a slow timer instead. Quiet
+    // enough to be invisible, often enough that a queue two people share
+    // doesn't go stale.
+    if(pollTimer) clearInterval(pollTimer);
+    pollTimer=setInterval(function(){
+      if(state.mode!=="admin" || document.hidden) return;
+      api("GET","/api/review/submissions").then(function(res){
+        absorb(res.submissions||[]);
+      }).catch(function(){});
+    },45000);
+  }
+
+  function adminView(){
+    var frag=document.createDocumentFragment();
+
+    if(state.admin.storesView){ return storesPanel(); }
+    if(state.admin.open){ return adminDetail(state.admin.open); }
+
+    var lp=el("section","panel");
+    var bar=el("div","copybar");
+    bar.style.marginTop="0";
+    bar.appendChild(el("h3","","Submissions"));
+    var barActs=el("div","acts");
+    var stores=el("button","mini","Manage stores"); stores.type="button";
+    stores.addEventListener("click",function(){
+      state.admin.storesView=true; loadStoreRows(); render(); window.scrollTo(0,0);
+    });
+    barActs.appendChild(stores);
+    var refresh=el("button","mini","Refresh"); refresh.type="button";
+    refresh.addEventListener("click",loadSubmissions);
+    barActs.appendChild(refresh);
+    bar.appendChild(barActs);
+    lp.appendChild(bar);
+
+    /* ---- search, filter, sort ---- */
+    var tools=el("div","toolbar");
+
+    var searchWrap=el("div","tool grow");
+    searchWrap.appendChild(el("label","toollabel","Search"));
+    var search=document.createElement("input");
+    search.type="text"; search.id="adm-search"; search.placeholder="Guest name, email or group";
+    search.value=state.admin.q;
+    search.addEventListener("input",function(){
+      state.admin.q=search.value;
+      redrawList();
+    });
+    searchWrap.appendChild(search);
+    tools.appendChild(searchWrap);
+
+    var storeWrap=el("div","tool");
+    storeWrap.appendChild(el("label","toollabel","Store"));
+    var storeSel=document.createElement("select");
+    storeSel.id="adm-store";
+    var stores=[];
+    state.admin.rows.forEach(function(r){
+      var s=(r.location||"").trim();
+      if(s && stores.indexOf(s)<0) stores.push(s);
+    });
+    stores.sort(function(a,b){ return a.localeCompare(b); });
+    [["","All stores"]].concat(stores.map(function(s){ return [s,s]; })).forEach(function(o){
+      var op=document.createElement("option"); op.value=o[0]; op.textContent=o[1]; storeSel.appendChild(op);
+    });
+    storeSel.value=state.admin.store;
+    storeSel.addEventListener("change",function(){ state.admin.store=storeSel.value; redrawList(); });
+    storeWrap.appendChild(storeSel);
+    tools.appendChild(storeWrap);
+
+    var statusWrap=el("div","tool");
+    statusWrap.appendChild(el("label","toollabel","Chippy"));
+    var statusSel=document.createElement("select");
+    statusSel.id="adm-status";
+    [["","All"],["new","Not uploaded"],["loaded","Uploaded"]].forEach(function(o){
+      var op=document.createElement("option"); op.value=o[0]; op.textContent=o[1]; statusSel.appendChild(op);
+    });
+    statusSel.value=state.admin.status;
+    statusSel.addEventListener("change",function(){ state.admin.status=statusSel.value; redrawList(); });
+    statusWrap.appendChild(statusSel);
+    tools.appendChild(statusWrap);
+
+    var sortWrap=el("div","tool");
+    sortWrap.appendChild(el("label","toollabel","Sort by"));
+    var sortSel=document.createElement("select");
+    sortSel.id="adm-sort";
+    [["submitted-desc","Newest submitted"],["submitted-asc","Oldest submitted"],
+     ["event-asc","Event date, soonest"],["event-desc","Event date, latest"],
+     ["store-asc","Store A–Z"],["name-asc","Guest name A–Z"]].forEach(function(o){
+      var op=document.createElement("option"); op.value=o[0]; op.textContent=o[1]; sortSel.appendChild(op);
+    });
+    sortSel.value=state.admin.sort;
+    sortSel.addEventListener("change",function(){ state.admin.sort=sortSel.value; redrawList(); });
+    sortWrap.appendChild(sortSel);
+    tools.appendChild(sortWrap);
+
+    lp.appendChild(tools);
+
+    var listHost=el("div","listhost");
+    listHost.id="adm-list";
+    lp.appendChild(listHost);
+    drawList(listHost);
+
+    frag.appendChild(lp);
+    return frag;
+  }
+
+  function redrawList(){
+    var host=document.getElementById("adm-list");
+    if(host) drawList(host);
+  }
+
+  function visibleRows(){
+    var q=state.admin.q.trim().toLowerCase();
+    var rows=state.admin.rows.filter(function(r){
+      if(state.admin.store && (r.location||"")!==state.admin.store) return false;
+      if(state.admin.status){
+        var st = r.status==="loaded" ? "loaded" : "new";
+        if(st!==state.admin.status) return false;
+      }
+      if(!q) return true;
+      return [r.name,r.email,r.group,r.location].some(function(v){
+        return String(v||"").toLowerCase().indexOf(q)>-1;
+      });
+    });
+    var s=state.admin.sort;
+    rows.sort(function(a,b){
+      if(s==="submitted-asc") return String(a.submittedAt||"").localeCompare(String(b.submittedAt||""));
+      if(s==="event-asc") return String(a.eventDate||"9999").localeCompare(String(b.eventDate||"9999"));
+      if(s==="event-desc") return String(b.eventDate||"").localeCompare(String(a.eventDate||""));
+      if(s==="store-asc"){
+        var c=String(a.location||"zzz").localeCompare(String(b.location||"zzz"));
+        return c || String(b.submittedAt||"").localeCompare(String(a.submittedAt||""));
+      }
+      if(s==="name-asc") return String(a.name||"").localeCompare(String(b.name||""));
+      return String(b.submittedAt||"").localeCompare(String(a.submittedAt||""));
+    });
+    return rows;
+  }
+
+  function setChippy(row,on){
+    api("PATCH","/api/review/submissions/"+row.id,{status:on?"loaded":"new"})
+      .then(function(){
+        row.status=on?"loaded":"new";
+        redrawList();
+        if(state.admin.open && state.admin.open.id===row.id) render();
+      }).catch(function(e){
+        toast(e.status===403 ? "You have read-only access to this app"
+                             : "Couldn't update ("+(e.message||"error")+")");
+      });
+  }
+
+  function deleteSubmission(row,after){
+    api("DELETE","/api/review/submissions/"+row.id).then(function(){
+      state.admin.rows=state.admin.rows.filter(function(r){ return r.id!==row.id; });
+      if(state.admin.open && state.admin.open.id===row.id) state.admin.open=null;
+      toast("Submission deleted");
+      if(after) after(); else render();
+    }).catch(function(e){
+      toast(e.status===403 ? "Only an admin can delete a submission"
+                           : "Couldn't delete ("+(e.message||"error")+")");
+    });
+  }
+
+  /* Two-click delete: no browser dialog, no accidental loss. */
+  function armDelete(btn,onConfirm,label){
+    if(btn.dataset.armed==="1"){ onConfirm(); return; }
+    btn.dataset.armed="1";
+    btn.classList.add("danger");
+    var was=btn.textContent;
+    btn.textContent=label||"Confirm delete";
+    setTimeout(function(){
+      if(!btn.isConnected) return;
+      btn.dataset.armed="0"; btn.classList.remove("danger"); btn.textContent=was;
+    },4000);
+  }
+
+  function drawList(host){
+    clear(host);
+    if(state.admin.loading){ host.appendChild(el("p","empty","Loading…")); return; }
+    if(state.admin.error){ host.appendChild(el("div","notice",state.admin.error)); return; }
+    if(!state.admin.rows.length){ host.appendChild(el("p","empty","No submissions yet.")); return; }
+
+    var rows=visibleRows();
+    var count=el("p","hint",rows.length+" of "+state.admin.rows.length+" submission"+
+      (state.admin.rows.length===1?"":"s")+" · updating live");
+    count.style.marginBottom="12px";
+    host.appendChild(count);
+
+    if(!rows.length){ host.appendChild(el("p","empty","Nothing matches those filters.")); return; }
+
+    rows.forEach(function(row){
+      var loaded = row.status==="loaded";
+      var r=el("div","subrow"+(loaded?" is-loaded":""));
+
+      var box=el("button","chk"+(loaded?" on":"")); box.type="button";
+      box.title=loaded?"Uploaded to Chippy — click to unmark":"Mark as uploaded to Chippy";
+      box.setAttribute("aria-pressed",loaded?"true":"false");
+      box.setAttribute("aria-label","Uploaded to Chippy");
+      box.textContent=loaded?"✓":"";
+      box.addEventListener("click",function(){ setChippy(row,!loaded); });
+      r.appendChild(box);
+
+      var open=el("button","subopen"); open.type="button";
+      open.appendChild(el("div","who",(row.name||"Unnamed")+(row.group?" · "+row.group:"")));
+      var games=(row.games||[]).map(function(gid){ var g=gameById(gid); return g?g.name:gid; }).join(", ");
+      open.appendChild(el("div","sub",
+        (row.location||"No store")+" · "+(row.eventDate?formatDate(row.eventDate):"No date")+
+        " · "+(games||"No games")));
+      open.addEventListener("click",function(){
+        state.admin.open=row;
+        state.admin.checks=[]; state.admin.reviewState="idle"; state.admin.reviewMsg="";
+        state.admin.editDraft=null;
+        render(); window.scrollTo(0,0);
+      });
+      r.appendChild(open);
+
+      var side=el("div","subside");
+      side.appendChild(el("span","pill "+(loaded?"loaded":"new"), loaded?"In Chippy":"Not uploaded"));
+      var del=el("button","mini","Delete"); del.type="button";
+      del.addEventListener("click",function(){
+        armDelete(del,function(){ deleteSubmission(row,redrawList); });
+      });
+      side.appendChild(del);
+      r.appendChild(side);
+
+      host.appendChild(r);
+    });
+  }
+
+
+  /* ---------- per-field copy + review, producer side only ---------- */
+  function adminPairs(g,rows,i){
+    // Exactly the columns that go into the database, minus anything hidden.
+    var vals=g.exportRow(rows[i]||{},i);
+    if(!vals) return null;
+    var out=[];
+    for(var c=0;c<g.columns.length;c++){
+      if(g.hideInAdmin && g.hideInAdmin.indexOf(g.columns[c])>-1) continue;
+      out.push({label:g.columns[c],value:vals[c]||""});
+    }
+    return out;
+  }
+
+  /* One question rendered as a question and its answers, not a table row.
+     `copyable` turns every value into a click-to-copy control. */
+  function readableCard(g,rows,i,copyable,tone){
+    var r=rows[i]||{};
+    var lines=g.linesFor ? g.linesFor(r,i) : null;
+    if(!lines) return null;
+
+    var card=el("div","reccard"+(tone?" "+tone:""));
+    var hd=el("div","rechead");
+    hd.appendChild(el("span","recname",g.rowLabel(i)));
+    card.appendChild(hd);
+
+    function val(line){
+      if(copyable) return copyValue(line.label,line.value);
+      var s=el("div","plainval",line.value||"—");
+      if(!line.value) s.classList.add("blank");
+      return s;
+    }
+
+    lines.forEach(function(line){
+      if(line.kind==="title"){
+        var t=el("div","rtitle");
+        t.appendChild(el("span","rlabel",line.label));
+        t.appendChild(val(line));
+        card.appendChild(t);
+        return;
+      }
+      if(line.kind==="q"){
+        var q=el("div","rq");
+        q.appendChild(el("span","rlabel",line.label));
+        q.appendChild(val(line));
+        card.appendChild(q);
+        return;
+      }
+      if(line.kind==="band"){
+        card.appendChild(el("div","rband",line.value));
+        return;
+      }
+      if(line.kind==="a"){
+        var badge=line.badge||"A";
+        var a=el("div","ra");
+        a.appendChild(el("span","rbadge "+(badge==="Q"?"qq":"ans"),badge));
+        a.appendChild(val(line));
+        card.appendChild(a);
+        return;
+      }
+      var o=el("div","ropt"+(line.correct?" right":""));
+      o.appendChild(el("span","rbadge"+(line.correct?" right":""),line.letter));
+      o.appendChild(val(line));
+      if(line.correct) o.appendChild(el("span","rtag","Correct"));
+      card.appendChild(o);
+    });
+    return card;
+  }
+
+  /* All of a game's questions, grouped into colored point rooms where the
+     game has them, so the producer view reads like the input side. */
+  function gameBody(g,rows,copyable){
+    var host=document.createDocumentFragment();
+    if(g.groups){
+      g.groups.forEach(function(grp){
+        var room=el("div","level "+grp.tone+" open flat");
+        var hd=el("div","levelhead static");
+        hd.appendChild(el("span","lvname",groupLabel(g,grp,rows)));
+        room.appendChild(hd);
+        var body=el("div","levelbody");
+        grp.indices.forEach(function(ix){
+          var c=readableCard(g,rows,ix,copyable,grp.tone);
+          if(c) body.appendChild(c);
+        });
+        room.appendChild(body);
+        host.appendChild(room);
+      });
+      return host;
+    }
+    for(var i=0;i<g.count;i++){
+      var c=readableCard(g,rows,i,copyable,g.toneFor?g.toneFor(i):null);
+      if(c) host.appendChild(c);
+    }
+    return host;
+  }
+
+  function copyValue(label,value){
+    var b=el("button","copyval");
+    b.type="button";
+    b.title="Click to copy";
+    b.appendChild(el("span","copyval-text",value||"—"));
+    b.appendChild(el("span","copyval-ico","⧉"));
+    if(!value) b.classList.add("blank");
+    b.addEventListener("click",function(){ copyText(value,label+" copied"); });
+    return b;
+  }
+
+  function fieldLine(label,value){
+    var line=el("div","fieldline");
+    line.appendChild(el("span","fl-label",label));
+    line.appendChild(copyValue(label,value));
+    return line;
+  }
+
+  function reviewItems(row){
+    var out=[];
+    (row.games||[]).forEach(function(gid){
+      var g=gameById(gid); if(!g) return;
+      var rows=(row.content||{})[gid]||[];
+      for(var i=0;i<g.count;i++){
+        var fields=g.fields(i), r=rows[i]||{};
+        for(var j=0;j<fields.length;j++){
+          var fd=fields[j];
+          if(fd.type==="choice") continue;
+          var v=(r[fd.key]||"").trim();
+          if(!v) continue;
+          out.push({id:gid+"|"+i+"|"+fd.key,
+                    where:g.name+" — "+g.rowLabel(i)+" — "+fd.label,
+                    limit:fd.limit,text:r[fd.key]});
+        }
+      }
+    });
+    return out;
+  }
+
+  function runAdminReview(row){
+    var items=reviewItems(row);
+    if(!items.length){
+      state.admin.reviewState="done"; state.admin.checks=[];
+      state.admin.reviewMsg="Nothing to check."; render(); return;
+    }
+    state.admin.reviewState="running"; state.admin.checks=[]; state.admin.reviewMsg="";
+    render();
+
+    /* The prompt and the API key live on the server; this only sends the
+       text of the submission already on screen. */
+    api("POST","/api/review/spellcheck",{
+      items: items.map(function(it){ return {id:it.id,limit:it.limit,text:it.text}; })
+    }).then(function(res){
+      var byId={}; items.forEach(function(it){ byId[it.id]=it; });
+      var found=[];
+      (res.suggestions||[]).forEach(function(r){
+        var it=byId[r.id]; if(!it) return;
+        if(String(r.corrected).trim()===String(it.text).trim()) return;
+        found.push({id:r.id,where:it.where,was:it.text,now:r.corrected,
+                    why:String(r.reason||"Spelling and grammar.")});
+      });
+      state.admin.checks=found;
+      state.admin.reviewState="done";
+      state.admin.reviewMsg=found.length?"":"Clean sweep \u2014 nothing to fix.";
+      render();
+    }).catch(function(e){
+      state.admin.reviewState="error";
+      state.admin.reviewMsg = e.status===503
+        ? "The proofreading service isn't set up on this app yet."
+        : e.status===403 ? "You have read-only access to this app."
+        : "The review couldn't finish ("+(e.message||"error")+"). Nothing was changed.";
+      render();
+    });
+  }
+
+  function applyAdminFix(row,c){
+    var parts=c.id.split("|"), gid=parts[0], ri=+parts[1], key=parts[2];
+    var content=JSON.parse(JSON.stringify(row.content||{}));
+    if(!content[gid]) return;
+    if(!content[gid][ri]) content[gid][ri]={};
+    var was=content[gid][ri][key];
+    content[gid][ri][key]=c.now;
+    // Keep the stored correct answer pointing at the option it named.
+    if(content[gid][ri].correct && content[gid][ri].correct===was) content[gid][ri].correct=c.now;
+    api("PATCH","/api/review/submissions/"+row.id,{content:content}).then(function(res){
+      if(res.submission) row.content=res.submission.content;
+      state.admin.checks=state.admin.checks.filter(function(x){ return x.id!==c.id; });
+      toast("Fix saved");
+      render();
+    }).catch(function(e){
+      toast(e.status===403 ? "You have read-only access to this app"
+                           : "Couldn't save ("+(e.message||"error")+")");
+    });
+  }
+
+  function adminDetail(row){
+    var frag=document.createDocumentFragment();
+
+    var p=el("section","panel");
+    var h=el("div","section-head");
+    h.appendChild(el("h2","",row.name||"Unnamed submission"));
+    h.appendChild(el("p","",(row.email||"no email")+(row.group?" · "+row.group:"")+
+      " · "+(row.eventDate?formatDate(row.eventDate):"no date")+
+      (row.location?" · "+row.location:"")));
+    p.appendChild(h);
+
+    var acts=el("div","acts");
+    var back=el("button","mini","← All submissions"); back.type="button";
+    back.addEventListener("click",function(){
+      state.admin.open=null; state.admin.checks=[]; state.admin.reviewState="idle"; state.admin.reviewMsg="";
+      state.admin.editDraft=null;
+      render(); window.scrollTo(0,0);
+    });
+    acts.appendChild(back);
+
+    var loaded = row.status==="loaded";
+    var mark=el("button","mini chiptoggle"+(loaded?" on":"")); mark.type="button";
+    mark.setAttribute("aria-pressed",loaded?"true":"false");
+    mark.appendChild(el("span","chk small"+(loaded?" on":""),loaded?"✓":""));
+    mark.appendChild(el("span",null,loaded?"Uploaded to Chippy":"Mark as uploaded to Chippy"));
+    mark.addEventListener("click",function(){ setChippy(row,!loaded); });
+    acts.appendChild(mark);
+
+    var del=el("button","mini","Delete submission"); del.type="button";
+    del.style.marginLeft="auto";
+    del.addEventListener("click",function(){
+      armDelete(del,function(){
+        deleteSubmission(row,function(){ state.admin.open=null; render(); window.scrollTo(0,0); });
+      });
+    });
+    acts.appendChild(del);
+
+    p.appendChild(acts);
+
+    /* ---- details the reviewer can correct, plus the CSV's specialEventId ---- */
+    var d0={eventDate:row.eventDate||"",location:row.location||"",specialEventId:row.specialEventId||""};
+    if(!state.admin.editDraft) state.admin.editDraft=Object.assign({},d0);
+    var draft=state.admin.editDraft;
+
+    var edit=el("div","eventrow");
+    var grid=el("div","editgrid");
+
+    function fieldWrap(labelText,id,node){
+      var w=el("div","tool grow");
+      var l=el("label","toollabel",labelText);
+      l.setAttribute("for",id);
+      w.appendChild(l); w.appendChild(node);
+      return w;
+    }
+
+    var dateInp=document.createElement("input");
+    dateInp.type="date"; dateInp.id="edit-date"; dateInp.value=draft.eventDate;
+    dateInp.addEventListener("input",function(){ draft.eventDate=dateInp.value; refreshSave(); });
+    grid.appendChild(fieldWrap("Date of event","edit-date",dateInp));
+
+    var storeSel=document.createElement("select");
+    storeSel.id="edit-store";
+    var blank=document.createElement("option");
+    blank.value=""; blank.textContent="No store";
+    storeSel.appendChild(blank);
+    var opts=STORES.slice();
+    if(draft.location && opts.indexOf(draft.location)<0) opts.push(draft.location);
+    opts.forEach(function(s){
+      var o=document.createElement("option"); o.value=s; o.textContent=s; storeSel.appendChild(o);
+    });
+    storeSel.value=draft.location;
+    storeSel.addEventListener("change",function(){ draft.location=storeSel.value; refreshSave(); });
+    grid.appendChild(fieldWrap("Store","edit-store",storeSel));
+
+    var evInp=document.createElement("input");
+    evInp.type="text"; evInp.id="edit-event";
+    evInp.placeholder="Leave blank if this isn't a special event";
+    evInp.value=draft.specialEventId;
+    evInp.addEventListener("input",function(){ draft.specialEventId=evInp.value; refreshSave(); });
+    evInp.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); saveDetails(); } });
+    grid.appendChild(fieldWrap("Special Event ID","edit-event",evInp));
+
+    edit.appendChild(grid);
+
+    var saveRow=el("div","acts");
+    var saveBtn=el("button","mini primary","Save changes"); saveBtn.type="button";
+    var undoBtn=el("button","mini","Undo"); undoBtn.type="button";
+    function dirty(){
+      return draft.eventDate!==d0.eventDate ||
+             draft.location!==d0.location ||
+             draft.specialEventId.trim()!==d0.specialEventId.trim();
+    }
+    function refreshSave(){
+      saveBtn.disabled=!dirty();
+      undoBtn.hidden=!dirty();
+    }
+    function saveDetails(){
+      if(!dirty()) return;
+      saveBtn.disabled=true;
+      api("PATCH","/api/review/submissions/"+row.id,{
+        eventDate:draft.eventDate,
+        location:draft.location,
+        specialEventId:draft.specialEventId.trim()
+      }).then(function(){
+        row.eventDate=draft.eventDate;
+        row.location=draft.location;
+        row.specialEventId=draft.specialEventId.trim();
+        state.admin.editDraft=null;
+        toast("Details saved");
+        render();
+      }).catch(function(e){
+        saveBtn.disabled=false;
+        toast(e.status===403 ? "You have read-only access to this app"
+                             : "Couldn't save ("+(e.message||"error")+")");
+      });
+    }
+    saveBtn.addEventListener("click",saveDetails);
+    undoBtn.addEventListener("click",function(){ state.admin.editDraft=null; render(); });
+    saveRow.appendChild(saveBtn); saveRow.appendChild(undoBtn);
+    edit.appendChild(saveRow);
+
+    edit.appendChild(el("p","hint",
+      row.specialEventId
+        ? "Every CSV you download for this submission carries “"+row.specialEventId+"” in the specialEventId column."
+        : "The Special Event ID fills the specialEventId column on every CSV downloaded for this submission."));
+    refreshSave();
+    p.appendChild(edit);
+
+    frag.appendChild(p);
+
+    /* ---- spelling & grammar, producer side ---- */
+    var rp=el("section","panel");
+    var rbar=el("div","copybar"); rbar.style.marginTop="0";
+    rbar.appendChild(el("h3","","Spelling & grammar"));
+    if(state.admin.reviewState!=="running"){
+      var runBtn=el("button","mini primary",
+        state.admin.reviewState==="idle" ? "Check this submission" : "Check again");
+      runBtn.type="button";
+      runBtn.addEventListener("click",function(){ runAdminReview(row); });
+      rbar.appendChild(runBtn);
+    }
+    rp.appendChild(rbar);
+
+    if(state.admin.reviewState==="idle"){
+      rp.appendChild(el("p","hint","Claude reads every question and answer in this submission and suggests fixes. Accepting one writes it back to the submission, so the copy buttons below stay in sync. Submitters never see this."));
+    } else if(state.admin.reviewState==="running"){
+      rp.appendChild(el("p","empty","Reading the submission… usually under a minute."));
+    } else {
+      if(state.admin.reviewMsg) rp.appendChild(el("div","notice",state.admin.reviewMsg));
+      state.admin.checks.forEach(function(c){
+        var box=el("div","check");
+        box.appendChild(el("div","where",c.where));
+        var d=el("div","diff");
+        d.appendChild(el("span","was",c.was));
+        d.appendChild(document.createTextNode("  →  "));
+        d.appendChild(el("span","now",c.now));
+        box.appendChild(d);
+        box.appendChild(el("p","why",c.why));
+        var ba=el("div","acts");
+        var acc=el("button","mini primary","Use the fix"); acc.type="button";
+        acc.addEventListener("click",function(){ applyAdminFix(row,c); });
+        var ig=el("button","mini","Keep as written"); ig.type="button";
+        ig.addEventListener("click",function(){
+          state.admin.checks=state.admin.checks.filter(function(x){ return x.id!==c.id; }); render();
+        });
+        ba.appendChild(acc); ba.appendChild(ig);
+        box.appendChild(ba);
+        rp.appendChild(box);
+      });
+    }
+    frag.appendChild(rp);
+
+    /* ---- one panel per game: copyable fields + TSV ---- */
+    (row.games||[]).forEach(function(gid){
+      var g=gameById(gid); if(!g) return;
+      var rows=(row.content||{})[gid]||[];
+      var sec=el("section","panel");
+
+      var bar=el("div","copybar"); bar.style.marginTop="0";
+      bar.appendChild(el("h3","",g.name));
+      if(g.exports && g.exports.length){
+        var dls=el("div","acts");
+        g.exports.forEach(function(spec){
+          var a=document.createElement("a");
+          a.className="mini primary";
+          a.textContent = g.exports.length>1 ? "Download "+spec.label+" CSV" : "Download CSV";
+          a.href=csvUrl(row,g.id,spec.slug);
+          a.setAttribute("download","");
+          dls.appendChild(a);
+        });
+        bar.appendChild(dls);
+      }
+      sec.appendChild(bar);
+      sec.appendChild(el("p","hint","Click any value to copy just that field."));
+
+      sec.appendChild(gameBody(g,rows,true));
+      frag.appendChild(sec);
+    });
+
+    return frag;
+  }
+
+
+  /* =======================================================================
+     Action bar
+     ======================================================================= */
+  function renderChrome(){
+    renderRail();
+    var bar=document.getElementById("actionbarInner");
+    clear(bar);
+    var abar=document.getElementById("actionbar");
+
+    if(state.mode==="admin"){ abar.hidden=true; return; }
+    abar.hidden=false;
+
+    var status=el("div","statusline");
+    var right=el("div"); right.style.display="flex"; right.style.gap="10px"; right.style.flexWrap="wrap";
+
+    if(state.step===0){
+      status.appendChild(document.createTextNode(contactValid()?"Ready to pick games.":"Name, email, event date and store are required."));
+      var n0=el("button","btn","Choose games"); n0.type="button"; n0.disabled=!contactValid();
+      n0.addEventListener("click",function(){ state.step=1; saveDraft(); render(); window.scrollTo(0,0); });
+      right.appendChild(n0);
+    }
+    else if(state.step===1){
+      var total=state.picked.reduce(function(a,gid){ return a+gameById(gid).count; },0);
+      status.appendChild(document.createTextNode(
+        state.picked.length ? state.picked.length+" game"+(state.picked.length>1?"s":"")+" · "+total+" questions to write"
+                            : "Pick at least one game."));
+      var b0=el("button","btn secondary","Back"); b0.type="button";
+      b0.addEventListener("click",function(){ state.step=0; render(); window.scrollTo(0,0); });
+      var n1=el("button","btn","Submit Questions"); n1.type="button"; n1.disabled=!state.picked.length;
+      n1.addEventListener("click",function(){ state.step=2; saveDraft(); render(); window.scrollTo(0,0); });
+      right.appendChild(b0); right.appendChild(n1);
+    }
+    else if(state.step===2){
+      var done=0,tot=0;
+      state.picked.forEach(function(gid){ var pr=gameProgress(gameById(gid)); done+=pr.done; tot+=pr.total; });
+      var over=countOverLimit();
+      var s=el("strong",null,done+" of "+tot+" questions complete");
+      status.appendChild(s);
+      if(over){
+        status.appendChild(document.createTextNode(" · "));
+        status.appendChild(el("span","bad",over+" field"+(over>1?"s":"")+" over the limit"));
+      }
+      var b1=el("button","btn secondary","Back"); b1.type="button";
+      b1.addEventListener("click",function(){ state.step=1; render(); window.scrollTo(0,0); });
+      var n2=el("button","btn","Review"); n2.type="button"; n2.disabled=!contentComplete();
+      n2.addEventListener("click",function(){ state.step=3; saveDraft(); render(); window.scrollTo(0,0); });
+      right.appendChild(b1); right.appendChild(n2);
+    }
+    else if(state.step===3){
+      status.appendChild(document.createTextNode("Everything's filled in. Send it when you're happy with it."));
+      var b2=el("button","btn secondary","Back to content"); b2.type="button";
+      b2.addEventListener("click",function(){ state.step=2; render(); window.scrollTo(0,0); });
+      var sub=el("button","btn",state.submitting?"Sending…":"Submit content"); sub.type="button";
+      sub.disabled=state.submitting||!contentComplete();
+      sub.addEventListener("click",submit);
+      right.appendChild(b2); right.appendChild(sub);
+    }
+    else {
+      abar.hidden=true; return;
+    }
+    bar.appendChild(status); bar.appendChild(right);
+  }
+
+  /* =======================================================================
+     Router
+     ======================================================================= */
+  function render(){
+    var view=document.getElementById("view");
+    clear(view);
+    var sub=document.getElementById("subhead");
+    var modeBtn=document.getElementById("modeBtn");
+
+    if(state.mode==="admin"){
+      sub.textContent="Everything submitters have sent, ready to load into Chippy.";
+      modeBtn.textContent="View the form";
+      modeBtn.href="/";
+      view.appendChild(adminView());
+    } else {
+      sub.textContent="Write your own trivia for the games your group will play in the studio. Everything you type here goes straight to our production team for review!";
+      modeBtn.textContent="Producer view";
+      modeBtn.href="/review";
+      if(state.step===0) view.appendChild(stepContact());
+      else if(state.step===1) view.appendChild(stepGames());
+      else if(state.step===2) view.appendChild(stepContent());
+      else if(state.step===3) view.appendChild(stepReview());
+      else view.appendChild(stepReview());
+    }
+    renderChrome();
+  }
+
+  // Show the wordmark image once it loads; keep the text until then.
+  (function(){
+    var lg=document.getElementById("brandLogo"), txt=document.getElementById("brandFallback");
+    if(!lg) return;
+    function show(){ lg.hidden=false; if(txt) txt.hidden=true; }
+    if(lg.complete && lg.naturalWidth) show();          // already cached
+    lg.addEventListener("load",show);
+    lg.addEventListener("error",function(){ lg.remove(); });
+  })();
+
+  state.mode = (APP.mode === "review") ? "admin" : "form";
+  if(state.mode==="form") loadDraft();
+  render();
+  if(state.mode==="admin"){ loadSubmissions(); loadStoreRows(); }
+  else loadStores();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Signing in…</title>
+  <style>
+    body { font-family: -apple-system, system-ui, sans-serif;
+           display: grid; place-items: center; min-height: 100vh;
+           margin: 0; color: #1a1a2e; background: #fafafa; }
+    .box { text-align: center; }
+    .err { color: #c0392b; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <p id="msg">Signing you in…</p>
+  </div>
+  <script>
+    /* The id_token comes back in the URL fragment (#id_token=...). The
+       fragment is never sent to a server, so we extract it here and POST
+       it to /auth/sso/complete, which verifies and sets the real session. */
+    (function () {
+      const params = new URLSearchParams(window.location.hash.slice(1));
+      const idToken = params.get("id_token");
+      const state = params.get("state") || "";
+      const msg = document.getElementById("msg");
+      if (!idToken) {
+        msg.className = "err";
+        msg.textContent = "Sign-in failed: no token returned.";
+        return;
+      }
+      const body = new URLSearchParams({ id_token: idToken, state });
+      fetch("/auth/sso/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body,
+        credentials: "same-origin",
+        redirect: "manual",
+      }).then((r) => {
+        // Server responds 303 -> /  — fetch with redirect:manual gives type "opaqueredirect"
+        if (r.type === "opaqueredirect" || r.ok) {
+          window.location.replace("/");
+        } else {
+          msg.className = "err";
+          msg.textContent = "Sign-in failed (" + r.status + ").";
+        }
+      }).catch((e) => {
+        msg.className = "err";
+        msg.textContent = "Sign-in failed: " + e;
+      });
+    })();
+  </script>
+</body>
+</html>

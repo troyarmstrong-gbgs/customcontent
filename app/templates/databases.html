@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Databases{% endblock %}
+{% block content %}
+<div class="card">
+  <p style="margin:0;"><a href="/" class="muted">&larr; Home</a></p>
+  <h1 style="margin:0.4rem 0 0 0;">Databases</h1>
+  <p class="muted" style="margin:0.4rem 0 0 0;">
+    This app pulls data through the Curiosity Games broker — never by
+    connecting to a database directly. Below is what you're allowed to
+    call, how to request more, and how to get a key for local testing.
+  </p>
+</div>
+
+<div class="card">
+  <h2 style="margin-top:0;">What this app can pull</h2>
+  {% if preview_error %}
+    <p class="muted" style="color:#b35d00;">Couldn't load the catalog: {{ preview_error }}</p>
+  {% elif not subscribed and not available %}
+    <p class="muted">No broker queries are wired up for this app yet. Ask an admin to subscribe it to the queries you need.</p>
+  {% else %}
+    {% if subscribed %}
+    <h3 style="margin-bottom:0.25rem;">Subscribed ({{ subscribed | length }})</h3>
+    <table style="width:100%; margin-bottom:1rem;">
+      <thead><tr style="text-align:left; border-bottom:1px solid var(--border);">
+        <th style="padding:0.4rem 0.25rem;">Query</th>
+        <th style="padding:0.4rem 0.25rem;">Database</th>
+        <th style="padding:0.4rem 0.25rem;">Sensitivity</th>
+      </tr></thead>
+      <tbody>
+        {% for q in subscribed %}
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:0.5rem 0.25rem;"><b>{{ q.name or q.slug }}</b><br><code class="muted" style="font-size:0.85rem;">{{ q.slug }}</code>{% if q.description %}<br><span class="muted" style="font-size:0.85rem;">{{ q.description }}</span>{% endif %}</td>
+          <td style="padding:0.5rem 0.25rem;"><code>{{ q.database_slug }}</code></td>
+          <td style="padding:0.5rem 0.25rem; font-size:0.85rem;">
+            {% if q.sensitivity_tiers %}<span style="color:#c0392b;">{{ q.sensitivity_tiers | join(', ') }}</span>{% else %}<span class="muted">—</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+
+    {% if available %}
+    <details>
+      <summary style="cursor:pointer; font-weight:600;">Available — not yet subscribed ({{ available | length }})</summary>
+      <ul style="margin:0.5rem 0 0 1.25rem;">
+        {% for q in available %}
+        <li style="margin-bottom:0.25rem;"><code>{{ q.slug }}</code>{% if q.name %} — {{ q.name }}{% endif %}{% if q.sensitivity_tiers %} <span style="color:#c0392b; font-size:0.85rem;">({{ q.sensitivity_tiers | join(', ') }})</span>{% endif %}</li>
+        {% endfor %}
+      </ul>
+      <p class="muted" style="margin:0.5rem 0 0 0; font-size:0.9rem;">To use one of these, ask Andrew to subscribe this app at <code>/admin/apps/&lt;id&gt;</code> on the service app.</p>
+    </details>
+    {% endif %}
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2 style="margin-top:0;">Request more data</h2>
+  <p>Need a query that doesn't exist, or access to one you're not subscribed to? Message <b>Andrew</b> with: what data you want, what you'll do with it, and who needs to see it. New queries are added on the service app and subscribed to this app.</p>
+</div>
+
+<div class="card">
+  <h2 style="margin-top:0;">Get a 1-week Claude access token</h2>
+  <p>
+    For local development, Claude can query the broker on your behalf
+    using a short-lived dev key. Generate one, paste it into your Claude
+    session, and Claude can probe real data while building.
+  </p>
+  <p>
+    <a class="btn" href="{{ sso_issuer }}/account/claude-key" target="_blank">Generate a dev key →</a>
+  </p>
+  <p class="muted" style="font-size:0.9rem;">
+    Keys last 7 days, are revocable, and only reach queries this app is subscribed to. Every call is logged.
+  </p>
+</div>
+{% endblock %}

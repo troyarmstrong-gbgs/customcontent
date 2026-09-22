@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+{% block title %}User Management{% endblock %}
+{% block content %}
+<div class="card">
+  <p style="margin:0;"><a href="/" class="muted">&larr; Home</a></p>
+  <h1 style="margin:0.4rem 0 0 0;">User Management</h1>
+  <p class="muted" style="margin:0.4rem 0 0 0;">
+    Grant access to individual users or Google groups, assign roles, and
+    control per-page access. Sign-in is handled by Curiosity Games SSO —
+    this controls what people can do <i>inside this app</i>.
+  </p>
+</div>
+
+{% if flash %}
+<div class="card" style="border-left:4px solid #2a9d5d; background:#eafaf0;">
+  <p style="margin:0;">{{ flash | replace("+", " ") }}</p>
+</div>
+{% endif %}
+
+<!-- Add user / group ----------------------------------------------------->
+<div class="card">
+  <h2 style="margin-top:0;">Add a user or group</h2>
+  {% if not directory_enabled %}
+    <p class="muted" style="color:#b35d00;">Directory typeahead unavailable (SERVICE_APP_PERMISSIONS_KEY not set) — type the full email manually.</p>
+  {% endif %}
+  <form method="post" action="/admin/mappings" style="display:grid; gap:0.6rem; max-width:640px;">
+    <div style="display:flex; gap:0.5rem; align-items:center;">
+      <label><input type="radio" name="is_group" value="" checked onchange="window._kind='user'"> User</label>
+      <label><input type="radio" name="is_group" value="1" onchange="window._kind='group'"> Google group</label>
+    </div>
+    <div style="position:relative;">
+      <input type="text" name="group_email" id="entity-email" autocomplete="off"
+             placeholder="start typing a name or email…"
+             style="width:100%; padding:0.5rem; box-sizing:border-box;" />
+      <div id="typeahead" style="position:absolute; left:0; right:0; background:#fff; border:1px solid #ddd; border-top:none; z-index:10; display:none; max-height:240px; overflow:auto;"></div>
+    </div>
+    <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+      <select name="role" style="padding:0.5rem;">
+        {% for r in builtin_roles %}<option value="{{ r }}">{{ r }}</option>{% endfor %}
+      </select>
+      <select name="custom_role_id" style="padding:0.5rem;">
+        <option value="">— no custom role —</option>
+        {% for cr in custom_roles %}<option value="{{ cr.id }}">{{ cr.name }}</option>{% endfor %}
+      </select>
+      <input type="text" name="description" placeholder="note (optional)" style="flex:1; padding:0.5rem;" />
+      <button class="btn" type="submit">Add</button>
+    </div>
+  </form>
+</div>
+
+<!-- Role mappings -------------------------------------------------------->
+<div class="card">
+  <h2 style="margin-top:0;">Role grants</h2>
+  {% if not mappings %}<p class="muted">No grants yet — add a user or group above.</p>{% else %}
+  <table style="width:100%;">
+    <thead><tr style="text-align:left; border-bottom:1px solid var(--border);">
+      <th style="padding:0.4rem 0.25rem;">Email</th>
+      <th style="padding:0.4rem 0.25rem;">Kind</th>
+      <th style="padding:0.4rem 0.25rem;">Role</th>
+      <th style="padding:0.4rem 0.25rem;">Custom role</th>
+      <th style="padding:0.4rem 0.25rem;">Note</th>
+      <th></th>
+    </tr></thead>
+    <tbody>
+      {% for m in mappings %}
+      <tr style="border-bottom:1px solid var(--border); {% if not m.active %}opacity:0.5;{% endif %}">
+        <td style="padding:0.5rem 0.25rem;"><b>{{ m.group_email }}</b></td>
+        <td style="padding:0.5rem 0.25rem;">{% if m.is_group %}<span class="badge">group</span>{% else %}<span class="muted">user</span>{% endif %}</td>
+        <td style="padding:0.5rem 0.25rem;"><span class="badge">{{ m.role }}</span></td>
+        <td style="padding:0.5rem 0.25rem;">{% if m.custom_role_id and roles_by_id.get(m.custom_role_id) %}{{ roles_by_id[m.custom_role_id].name }}{% else %}<span class="muted">—</span>{% endif %}</td>
+        <td style="padding:0.5rem 0.25rem;" class="muted">{{ m.description }}</td>
+        <td style="padding:0.5rem 0.25rem; text-align:right;">
+          <form method="post" action="/admin/mappings/{{ m.id }}/delete" style="display:inline;"
+                onsubmit="return confirm('Remove grant for {{ m.group_email }}?');">
+            <button type="submit" style="background:none; color:#c0392b; border:none; cursor:pointer;">Remove</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</div>
+
+<!-- Signed-in users ------------------------------------------------------>
+<div class="card">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <h2 style="margin:0;">Signed-in users</h2>
+    <form method="post" action="/admin/users/sync" style="margin:0;">
+      <button class="btn" type="submit" style="background:#34495e;">Sync with directory</button>
+    </form>
+  </div>
+  {% if not users %}<p class="muted">No one has signed in yet.</p>{% else %}
+  <table style="width:100%; margin-top:0.5rem;">
+    <thead><tr style="text-align:left; border-bottom:1px solid var(--border);">
+      <th style="padding:0.4rem 0.25rem;">Email</th>
+      <th colspan="2" style="padding:0.4rem 0.25rem;">Role / custom role</th>
+      <th style="padding:0.4rem 0.25rem;">Groups</th>
+      <th style="padding:0.4rem 0.25rem;">Status</th>
+    </tr></thead>
+    <tbody>
+      {% for lu in users %}
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:0.5rem 0.25rem;"><b>{{ lu.email }}</b>{% if lu.name and lu.name != lu.email %}<br><span class="muted" style="font-size:0.85rem;">{{ lu.name }}</span>{% endif %}</td>
+        <td colspan="2" style="padding:0.5rem 0.25rem;">
+          <form method="post" action="/admin/users/{{ lu.email }}/role" style="display:flex; gap:0.4rem;">
+            <select name="role" style="padding:0.35rem;">
+              {% if lu.role == 'pending' %}<option value="pending" selected>pending</option>{% endif %}
+              {% for r in builtin_roles %}<option value="{{ r }}" {% if lu.role == r %}selected{% endif %}>{{ r }}</option>{% endfor %}
+            </select>
+            <select name="custom_role_id" style="padding:0.35rem;">
+              <option value="">— none —</option>
+              {% for cr in custom_roles %}<option value="{{ cr.id }}" {% if lu.custom_role_id == cr.id %}selected{% endif %}>{{ cr.name }}</option>{% endfor %}
+            </select>
+            <button type="submit" style="font-size:0.8rem; padding:0.3rem 0.6rem;">Save</button>
+          </form>
+        </td>
+        <td style="padding:0.5rem 0.25rem; font-size:0.8rem;" class="muted">
+          {% set gl = lu.group_list() %}{% if gl %}{{ gl | length }} group(s){% else %}—{% endif %}
+        </td>
+        <td style="padding:0.5rem 0.25rem;">
+          {% if not lu.is_active %}
+            <form method="post" action="/admin/users/{{ lu.email }}/reactivate" style="display:inline;">
+              <span class="badge" style="background:#fde2e2; color:#c0392b;">revoked</span>
+              <button type="submit" style="background:none;border:none;color:#2a9d5d;cursor:pointer;font-size:0.8rem;">re-enable</button>
+            </form>
+          {% else %}
+            <form method="post" action="/admin/users/{{ lu.email }}/revoke" style="display:inline;"
+                  onsubmit="return confirm('Revoke {{ lu.email }} from this app?');">
+              <span class="badge" style="background:#eafaf0; color:#2a9d5d;">active</span>
+              <button type="submit" style="background:none;border:none;color:#c0392b;cursor:pointer;font-size:0.8rem;">revoke</button>
+            </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</div>
+
+<!-- Custom roles --------------------------------------------------------->
+<div class="card">
+  <h2 style="margin-top:0;">Custom roles</h2>
+  <p class="muted" style="margin-top:0;">Named roles with per-page access. Pages left blank fall back to the base role's default.</p>
+  {% if custom_roles %}
+  <table style="width:100%; margin-bottom:1rem;">
+    <thead><tr style="text-align:left; border-bottom:1px solid var(--border);">
+      <th style="padding:0.4rem 0.25rem;">Name</th>
+      <th style="padding:0.4rem 0.25rem;">Base</th>
+      <th style="padding:0.4rem 0.25rem;">Pages</th>
+      <th></th>
+    </tr></thead>
+    <tbody>
+      {% for cr in custom_roles %}
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:0.5rem 0.25rem;"><b>{{ cr.name }}</b>{% if cr.description %}<br><span class="muted" style="font-size:0.85rem;">{{ cr.description }}</span>{% endif %}</td>
+        <td style="padding:0.5rem 0.25rem;"><span class="badge">{{ cr.base_role }}</span></td>
+        <td style="padding:0.5rem 0.25rem; font-size:0.85rem;" class="muted">
+          {% set pm = role_page_map.get(cr.id, {}) %}
+          {% for path, lvl in pm.items() %}<code>{{ path }}</code>:{{ lvl }}{{ ", " if not loop.last }}{% else %}all default{% endfor %}
+        </td>
+        <td style="padding:0.5rem 0.25rem; text-align:right;">
+          <form method="post" action="/admin/custom-roles/{{ cr.id }}/delete" style="display:inline;"
+                onsubmit="return confirm('Delete role {{ cr.name }}?');">
+            <button type="submit" style="background:none;color:#c0392b;border:none;cursor:pointer;">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  <details>
+    <summary style="cursor:pointer; font-weight:600;">+ New / edit custom role</summary>
+    <form method="post" action="/admin/custom-roles" style="display:grid; gap:0.6rem; margin-top:0.6rem; max-width:640px;">
+      <div style="display:flex; gap:0.5rem;">
+        <input type="text" name="name" placeholder="Role name (e.g. Construction PM)" required style="flex:1; padding:0.5rem;" />
+        <select name="base_role" style="padding:0.5rem;">
+          {% for r in builtin_roles %}<option value="{{ r }}">{{ r }} base</option>{% endfor %}
+        </select>
+      </div>
+      <input type="text" name="description" placeholder="description (optional)" style="padding:0.5rem;" />
+      <div style="border:1px solid var(--border); border-radius:6px; padding:0.5rem 0.75rem;">
+        <p class="muted" style="margin:0 0 0.4rem 0; font-size:0.85rem;">Per-page access (blank = base default):</p>
+        {% for pg in managed_pages %}
+        <div style="display:flex; gap:0.5rem; align-items:center; margin-bottom:0.3rem;">
+          <code style="flex:1;">{{ pg.label }} <span class="muted">{{ pg.path }}</span></code>
+          <select name="level_{{ pg.path }}" style="padding:0.3rem;">
+            <option value="">default</option>
+            {% for lv in levels %}<option value="{{ lv }}">{{ lv }}</option>{% endfor %}
+          </select>
+        </div>
+        {% endfor %}
+      </div>
+      <div><button class="btn" type="submit">Save custom role</button></div>
+    </form>
+  </details>
+</div>
+
+<!-- Page permission matrix ----------------------------------------------->
+<div class="card">
+  <h2 style="margin-top:0;">Page access overrides</h2>
+  <p class="muted" style="margin-top:0;">Override a single page for one user or group. Highest level wins across a user's own email + their groups.</p>
+  {% if not matrix %}<p class="muted">No users or groups yet.</p>{% else %}
+  <div style="overflow-x:auto;">
+  <table style="width:100%; font-size:0.9rem;">
+    <thead><tr style="text-align:left; border-bottom:1px solid var(--border);">
+      <th style="padding:0.4rem 0.25rem;">Email</th>
+      {% for pg in managed_pages %}<th style="padding:0.4rem 0.25rem;">{{ pg.label }}</th>{% endfor %}
+    </tr></thead>
+    <tbody>
+      {% for row in matrix %}
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:0.4rem 0.25rem;">{{ row.email }}</td>
+        {% for c in row.cells %}
+        <td style="padding:0.3rem 0.25rem;">
+          <form method="post" action="/admin/page-permissions" style="margin:0;">
+            <input type="hidden" name="email" value="{{ row.email }}" />
+            <input type="hidden" name="page_path" value="{{ c.page }}" />
+            <select name="level" onchange="this.form.submit()" style="padding:0.2rem; font-size:0.8rem;">
+              <option value="" {% if not c.level %}selected{% endif %}>default</option>
+              {% for lv in levels %}<option value="{{ lv }}" {% if c.level == lv %}selected{% endif %}>{{ lv }}</option>{% endfor %}
+            </select>
+          </form>
+        </td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+// Directory typeahead for the add-user/group field.
+window._kind = 'user';
+(function () {
+  const input = document.getElementById('entity-email');
+  const box = document.getElementById('typeahead');
+  if (!input) return;
+  let timer = null;
+  input.addEventListener('input', () => {
+    clearTimeout(timer);
+    const q = input.value.trim();
+    if (q.length < 2) { box.style.display = 'none'; return; }
+    timer = setTimeout(async () => {
+      try {
+        const r = await fetch(`/admin/directory-search?kind=${window._kind}&q=${encodeURIComponent(q)}`);
+        const j = await r.json();
+        if (!j.available || !j.matches.length) { box.style.display = 'none'; return; }
+        box.innerHTML = j.matches.map(m =>
+          `<div class="ta-item" data-email="${m.email}" style="padding:0.4rem 0.6rem; cursor:pointer; border-bottom:1px solid #eee;">
+             <b>${m.name}</b> <span style="color:#888;">${m.email}</span>${m.members ? ` <span style="color:#888;">(${m.members} members)</span>` : ''}
+           </div>`).join('');
+        box.style.display = 'block';
+        box.querySelectorAll('.ta-item').forEach(el => {
+          el.addEventListener('click', () => { input.value = el.dataset.email; box.style.display = 'none'; });
+        });
+      } catch (e) { box.style.display = 'none'; }
+    }, 200);
+  });
+  document.addEventListener('click', (e) => { if (e.target !== input) box.style.display = 'none'; });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}Host Training Manual{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      /* ── Great Big Game Show palette — official brand guide ── */
+      --navy: #021D41;        /* Chip Navy    */
+      --lights: #0F2851;      /* Lights Out   */
+      --stripe: #24386D;      /* Dark Stripe  */
+      --toupee: #A7B5D6;      /* Toupee       */
+      --g1: #9728D1;          /* gradient: Confetti Purple */
+      --g2: #F93A5A;          /* gradient: Red Team        */
+      --g3: #FFBD17;          /* gradient: Trophy Yellow   */
+      --blue: #4A82FF;        /* Highlight Blue */
+      --pink: var(--g2); --orange: var(--g3);
+      --gradient: linear-gradient(90deg, var(--g1), var(--g2), var(--g3));
+      --bg: #F5F6FA;          /* Web Off-white */
+      --panel: #fff; --border: #e2e6f0;
+      --text: #021D41; --text-dim: #4a5a78;
+      --radius: 8px;
+      /* Sidebar */
+      --sb-w: 300px; --sb-cw: 64px; --sb-transition: 0.22s ease;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; min-height: 100vh; }
+    body { padding-left: var(--sb-w); transition: padding-left var(--sb-transition); }
+    body.sb-collapsed { padding-left: var(--sb-cw); }
+    body.sb-collapsed.sb-peek { padding-left: var(--sb-cw); }
+
+    /* ── Sidebar shell ── */
+    .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: var(--sb-w);
+      background: var(--navy); display: flex; flex-direction: column;
+      overflow-x: hidden; overflow-y: auto; z-index: 200; transition: width var(--sb-transition); }
+    body.sb-collapsed .sidebar { width: var(--sb-cw); }
+    body.sb-collapsed.sb-peek .sidebar { width: var(--sb-w); box-shadow: 4px 0 24px rgba(0,0,0,0.18); }
+
+    .brand { display: flex; align-items: center; gap: 10px; padding: 16px 12px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.07); flex-shrink: 0; min-height: 64px;
+      color: #fff; text-decoration: none; }
+    .sb-logo-icon { flex-shrink: 0; display: flex; align-items: center; color: var(--pink); }
+    .brandbar { height: 6px; background: var(--gradient); flex-shrink: 0; }
+    .sb-logo-img { width: 100%; display: block; }
+    .brand:has(.sb-logo-img) { flex-direction: column; align-items: stretch; padding: 14px 16px 12px; }
+    .brand:has(.sb-logo-img) .sb-logo-icon, .brand:has(.sb-logo-img) .sb-logo-text { display: none; }
+    body.sb-collapsed:not(.sb-peek) .sb-logo-img { display: none; }
+    body.sb-collapsed:not(.sb-peek) .brand:has(.sb-logo-img) { flex-direction: row; align-items: center; }
+    body.sb-collapsed:not(.sb-peek) .brand:has(.sb-logo-img) .sb-logo-icon { display: flex; }
+
+    /* Sidebar search — filters the topic list below it */
+    .sb-search-wrap { padding: 2px 14px 12px; flex-shrink: 0; }
+    .sb-search { width: 100%; padding: 10px 14px; border-radius: 999px; border: 2px solid var(--stripe);
+      background: var(--lights); color: #fff; font-family: inherit; font-size: 13px; outline: none; }
+    .sb-search::placeholder { color: var(--toupee); }
+    .sb-search:focus { border-color: var(--g2); }
+    .sb-noresult { color: var(--toupee); font-size: 12px; padding: 8px 14px; }
+    body.sb-collapsed:not(.sb-peek) .sb-search-wrap { display: none; }
+    .sb-logo-text { display: flex; flex-direction: column; overflow: hidden; transition: opacity 0.12s; }
+    .sb-logo-name { font-size: 13px; font-weight: 700; color: #fff; line-height: 1.2; white-space: nowrap; }
+
+    .nav { display: flex; flex-direction: column; gap: 2px; padding: 10px 8px; flex: 1; }
+    .nav-link { display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,0.6);
+      text-decoration: none; font-size: 13px; font-weight: 500; padding: 9px 10px; border-radius: 6px;
+      transition: background 0.15s, color 0.15s; white-space: nowrap; overflow: hidden; position: relative; }
+    .nav-link:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.9); }
+    .nav-link.active { color: #fff; background: linear-gradient(90deg, rgba(151,40,209,0.32), rgba(249,58,90,0.24)); }
+    .nav-link.active::before { content: ''; position: absolute; left: 0; top: 5px; bottom: 5px;
+      width: 3px; background: var(--g3); border-radius: 0 2px 2px 0; }
+
+    .sb-group { display: flex; flex-direction: column; margin-top: 8px; padding-top: 8px;
+      border-top: 1px solid rgba(255,255,255,0.07); }
+    .sb-group-header { display: flex; align-items: center; justify-content: space-between; width: 100%;
+      background: transparent; border: none; cursor: pointer; color: var(--g3);
+      font-family: inherit; font-size: 10px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 1.6px; padding: 8px 12px 4px; }
+    .sb-group-header:hover { color: rgba(255,255,255,0.75); }
+    .sb-group-chev { display: flex; transition: transform 0.15s; opacity: 0.7; }
+    .sb-group-collapsed .sb-group-chev { transform: rotate(-90deg); }
+    .sb-group-items { display: flex; flex-direction: column; gap: 2px; }
+    .sb-group-collapsed .sb-group-items { display: none; }
+    body.sb-collapsed:not(.sb-peek) .sb-group-label { opacity: 0; }
+    body.sb-collapsed:not(.sb-peek) .sb-group-chev { display: none; }
+    body.sb-collapsed:not(.sb-peek) .sb-group-collapsed .sb-group-items { display: flex; }
+
+    .sb-icon { flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; }
+    .sb-label { white-space: nowrap; transition: opacity 0.12s; }
+    body.sb-collapsed:not(.sb-peek) .sb-label { display: none; }
+    body.sb-collapsed:not(.sb-peek) .sb-logo-text { display: none; }
+    body.sb-collapsed:not(.sb-peek) .nav-link { justify-content: center; gap: 0; }
+    body.sb-collapsed:not(.sb-peek) .sb-signout { justify-content: center; gap: 0; }
+    body.sb-collapsed:not(.sb-peek) .user-tag { display: none; }
+    body.sb-collapsed:not(.sb-peek) .sb-group-header { display: none; }
+
+    .sb-footer { display: flex; flex-direction: column; gap: 4px; padding: 10px 8px;
+      border-top: 1px solid rgba(255,255,255,0.07); flex-shrink: 0; }
+    .user-tag { font-size: 11px; color: rgba(255,255,255,0.45); padding: 2px 10px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sb-signout { display: flex; align-items: center; gap: 10px; background: transparent; border: none;
+      color: rgba(255,255,255,0.5); font-size: 12px; font-weight: 500; padding: 8px 10px; border-radius: 6px;
+      cursor: pointer; width: 100%; text-align: left; text-decoration: none; transition: background 0.15s, color 0.15s;
+      overflow: hidden; white-space: nowrap; }
+    .sb-signout:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.9); }
+
+    .sb-toggle-btn { display: flex; align-items: center; justify-content: center; width: 30px; height: 30px;
+      align-self: flex-end; margin: 0 8px 10px; border-radius: 6px; background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.4); cursor: pointer; padding: 0;
+      transition: background 0.15s, color 0.15s; flex-shrink: 0; }
+    .sb-toggle-btn:hover { background: rgba(249,58,90,0.22); color: #fff; border-color: rgba(249,58,90,0.35); }
+    .sb-chev-left { display: flex; } .sb-chev-right { display: none; }
+    body.sb-collapsed .sb-chev-left { display: none; } body.sb-collapsed .sb-chev-right { display: flex; }
+    body.sb-collapsed.sb-peek .sb-chev-left { display: flex; } body.sb-collapsed.sb-peek .sb-chev-right { display: none; }
+
+    .sb-hamburger { display: none; position: fixed; top: 12px; left: 12px; z-index: 300; width: 40px; height: 40px;
+      border-radius: 8px; background: var(--navy); border: none; color: #fff; align-items: center; justify-content: center;
+      cursor: pointer; padding: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+    .sb-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 199; }
+
+    /* ── Content area ── */
+    .content { padding: 2rem 2.5rem; max-width: 1100px; }
+    .content.wide { padding: 0; max-width: none; }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 1.5rem 1.75rem; margin-bottom: 1.25rem; }
+    h1 { margin: 0 0 0.5rem 0; }
+    .muted { color: var(--text-dim); }
+    .btn { display: inline-block; background: var(--gradient); color: #fff; padding: 0.6rem 1.2rem;
+      border-radius: 999px; text-decoration: none; font-weight: 700; border: none; cursor: pointer;
+      font-family: inherit; }
+    .btn:hover { filter: brightness(1.08); }
+    .avatar { width: 28px; height: 28px; border-radius: 50%; vertical-align: middle; margin-right: 8px; }
+    code { background: #eee; padding: 2px 6px; border-radius: 3px; }
+
+    @media (max-width: 767px) {
+      body, body.sb-collapsed, body.sb-collapsed.sb-peek { padding-left: 0; }
+      .sidebar { transform: translateX(-100%); transition: transform var(--sb-transition); width: var(--sb-w) !important; }
+      body.sb-mobile-open .sidebar { transform: translateX(0); box-shadow: 4px 0 24px rgba(0,0,0,0.25); }
+      body.sb-mobile-open .sb-backdrop { display: block; }
+      .sb-hamburger { display: flex; } .sb-toggle-btn { display: none; }
+      body.sb-collapsed:not(.sb-peek) .sb-label { display: inline; }
+      body.sb-collapsed:not(.sb-peek) .sb-logo-text { display: flex; }
+      body.sb-collapsed:not(.sb-peek) .nav-link { justify-content: flex-start; gap: 10px; }
+      body.sb-collapsed:not(.sb-peek) .sb-group-header { display: flex; }
+      .content { padding: 60px 1rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+  {#
+    ── NAVIGATION CATALOG — edit this list for your app. ──────────────────────
+    Each item: href, label, icon (names defined in the icon() macro below — add
+    your own SVGs there), group ("top" = flat links at the top; any other string
+    = a collapsible section header), and optional admin_only (only shown to admins).
+    The sidebar, active-highlight, collapse, and mobile menu are all automatic —
+    you only maintain this list.
+  #}
+  {% set nav_items = nav_items if nav_items is defined and nav_items else [
+    {"href": "/",            "label": "Manual",    "icon": "home",  "group": "top"},
+    {"href": "/admin/users", "label": "Users",     "icon": "users", "group": "Admin", "admin_only": true},
+    {"href": "/databases",   "label": "Databases", "icon": "table", "group": "Admin", "admin_only": true},
+  ] %}
+  {% set _u = request.session.get("user") %}
+
+  {%- macro icon(name) -%}
+  {%- set icons = {
+    "home":     '<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+    "users":    '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>',
+    "chart":    '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',
+    "table":    '<rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/>',
+    "box":      '<path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>',
+    "calendar": '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+    "settings": '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>',
+    "dot":      '<circle cx="12" cy="12" r="3"/>'
+  } -%}
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{{ icons.get(name, icons["dot"]) | safe }}</svg>
+  {%- endmacro -%}
+
+  {%- macro nav_link(item) -%}
+  {%- set active = request.url.path == item.href or (item.href != "/" and request.url.path.startswith(item.href)) -%}
+  <a href="{{ item.href }}" class="nav-link{{ ' active' if active else '' }}"
+     title="{{ item.label }}{% if item.sub %} — {{ item.sub }}{% endif %}"
+     data-s="{{ (item.label ~ ' ' ~ (item.sub or '')) | lower }}">
+    <span class="sb-icon">{{ icon(item.icon) }}</span><span class="sb-label">{{ item.label }}</span>
+  </a>
+  {%- endmacro -%}
+
+  {# admin-filtered visible items + the ordered list of group names #}
+  {% set visible = [] %}
+  {% for item in nav_items %}{% if not item.admin_only or (_u and _u.get("is_admin")) %}{% set _ = visible.append(item) %}{% endif %}{% endfor %}
+  {% set groups = [] %}
+  {% for item in visible if item.group != "top" %}{% if item.group not in groups %}{% set _ = groups.append(item.group) %}{% endif %}{% endfor %}
+
+  <aside class="sidebar" id="sidebar">
+    <div class="brandbar"></div>
+    <a href="/" class="brand">
+      <span class="sb-logo-icon">{{ icon("box") }}</span>
+      {% if manual_logo %}<img class="sb-logo-img" src="{{ manual_logo }}" alt="Great Big Game Show" />{% endif %}
+      <span class="sb-logo-text"><span class="sb-logo-name">{% block app_name %}Host Training Manual{% endblock %}</span></span>
+    </a>
+    {% block sidebar_search %}{% endblock %}
+
+    <nav class="nav">
+      {% for item in visible if item.group == "top" %}{{ nav_link(item) }}{% endfor %}
+      {% for g in groups %}
+      <div class="sb-group">
+        <button type="button" class="sb-group-header" data-group="{{ g }}">
+          <span class="sb-group-label">{{ g }}</span>
+          <span class="sb-group-chev"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+        </button>
+        <div class="sb-group-items">
+          {% for item in visible if item.group == g %}{{ nav_link(item) }}{% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </nav>
+
+    <div class="sb-footer">
+      {% if _u %}
+        <span class="user-tag">{{ _u.get("email") or _u.get("name") }}</span>
+        <a href="/auth/logout" class="sb-signout">
+          <span class="sb-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span>
+          <span class="sb-label">Sign out</span>
+        </a>
+      {% else %}
+        <a href="/auth/sso/login" class="sb-signout"><span class="sb-label">Sign in</span></a>
+      {% endif %}
+    </div>
+
+    <button type="button" class="sb-toggle-btn" id="sb-toggle-btn" aria-label="Toggle sidebar" title="Collapse sidebar">
+      <span class="sb-chev-left"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></span>
+      <span class="sb-chev-right"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+    </button>
+  </aside>
+
+  <button type="button" class="sb-hamburger" id="sb-hamburger" aria-label="Open navigation">
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <div class="sb-backdrop" id="sb-backdrop"></div>
+
+  <main class="content {% block content_class %}{% endblock %}">{% block content %}{% endblock %}</main>
+
+  <script>
+  (function () {
+    var body = document.body, sidebar = document.getElementById('sidebar');
+    if (localStorage.getItem('sidebar.collapsed') === '1') body.classList.add('sb-collapsed');
+    // collapsed group state
+    document.querySelectorAll('.sb-group').forEach(function (grp) {
+      var hdr = grp.querySelector('.sb-group-header'), key = 'sidebar.group.' + (hdr && hdr.dataset.group) + '.collapsed';
+      if (localStorage.getItem(key) === '1') grp.classList.add('sb-group-collapsed');
+      if (hdr) hdr.addEventListener('click', function () {
+        var c = grp.classList.toggle('sb-group-collapsed');
+        localStorage.setItem(key, c ? '1' : '0');
+      });
+    });
+    var toggle = document.getElementById('sb-toggle-btn');
+    if (toggle) toggle.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var c = body.classList.toggle('sb-collapsed');
+      localStorage.setItem('sidebar.collapsed', c ? '1' : '0');
+      body.classList.remove('sb-peek');
+    });
+    if (sidebar) {
+      sidebar.addEventListener('mouseenter', function () { if (body.classList.contains('sb-collapsed')) body.classList.add('sb-peek'); });
+      sidebar.addEventListener('mouseleave', function () { body.classList.remove('sb-peek'); });
+    }
+    var ham = document.getElementById('sb-hamburger'), bd = document.getElementById('sb-backdrop');
+    if (ham) ham.addEventListener('click', function () { body.classList.toggle('sb-mobile-open'); });
+    if (bd) bd.addEventListener('click', function () { body.classList.remove('sb-mobile-open'); });
+
+    // Sidebar search: filter nav links by label + subtitle, hiding any
+    // group that ends up with nothing left in it.
+    var search = document.getElementById('sb-search');
+    if (search) {
+      var nores = document.getElementById('sb-noresult');
+      search.addEventListener('input', function () {
+        var q = search.value.trim().toLowerCase(), hits = 0;
+        document.querySelectorAll('.nav-link[data-s]').forEach(function (a) {
+          var show = !q || a.dataset.s.indexOf(q) !== -1;
+          a.style.display = show ? '' : 'none';
+          if (show) hits++;
+        });
+        document.querySelectorAll('.sb-group').forEach(function (grp) {
+          var any = Array.prototype.some.call(grp.querySelectorAll('.nav-link[data-s]'),
+            function (a) { return a.style.display !== 'none'; });
+          grp.style.display = any ? '' : 'none';
+          // While searching, force groups open so matches aren't hidden.
+          if (q) grp.classList.remove('sb-group-collapsed');
+        });
+        if (nores) nores.style.display = (q && hits === 0) ? 'block' : 'none';
+      });
+      // "/" focuses search from anywhere; Escape clears it.
+      document.addEventListener('keydown', function (e) {
+        if (e.key === '/' && document.activeElement !== search) { e.preventDefault(); search.focus(); }
+        else if (e.key === 'Escape' && document.activeElement === search) {
+          search.value = ''; search.dispatchEvent(new Event('input')); search.blur();
+        }
+      });
+    }
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Host Training Manual{% endblock %}
+
+{#
+  Gate page. Anyone who reaches here either isn't signed in, or is signed
+  in but hasn't been granted a role on this app — so they never receive the
+  manual itself. People WITH access get the manual instead (see main.index).
+#}
+{% block content %}
+{% if not signed_in %}
+  <div class="card" style="text-align:center; padding:3rem 2rem;">
+    <h1 style="font-style:italic; text-transform:uppercase; font-weight:800;">Host Training Manual</h1>
+    <p class="muted">Great Big Game Show &middot; hosting, mini-games, and show ops.</p>
+    <p style="margin-top:1.75rem;">
+      <a class="btn" href="/auth/sso/login">Sign in with Curiosity Games</a>
+    </p>
+  </div>
+{% else %}
+  <div class="card" style="border-left:5px solid var(--g3);">
+    <h1 style="margin-top:0;">You don't have access yet</h1>
+    <p>You're signed in as <code>{{ request.session.get("user", {}).get("email") }}</code>,
+       but an admin hasn't granted you a role on this app yet. Access is limited to the
+       people the owner has added &mdash; being in the organization isn't enough.</p>
+    <p class="muted">Ask the app owner to add you on their User Management page, then
+       sign in again.</p>
+    <p style="margin-top:1.5rem;"><a class="btn" href="/auth/logout">Sign out</a></p>
+  </div>
+{% endif %}
+{% endblock %}
