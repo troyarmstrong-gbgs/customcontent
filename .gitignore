@@ -1,16 +1,38 @@
-# Dependencies
-node_modules/
-
-# Environment secrets — NEVER commit this
+__pycache__/
+*.py[cod]
+*.so
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
 .env
-
-# Submission data — stored on the server, not in git
-data/submissions.json
-
-# OS junk
+.env.local
+*.pem
+*.key
+# Local preview SQLite DB
+dev.db
+dev.db-journal
+dev.db-wal
+dev.db-shm
 .DS_Store
-Thumbs.db
+.vscode/
+.idea/
 
-# Logs
-*.log
-npm-debug.log*
+# Content fetched at build time — don't commit, always fresh per deploy
+platform-docs/
+skills/
+broker_queries.json
+
+# Local preview lockfile — uv generates this when running scripts/dev.sh.
+# Railway builds from pyproject.toml via Nixpacks; keeping the lock out
+# avoids changing the deploy builder's behaviour.
+uv.lock
+
+# Leftovers from the Node app that used to live in this repo
+server.js
+package.json
+package-lock.json
+Procfile
+.gitkeep-data
+_to_delete/
